@@ -187,6 +187,15 @@ export default function App() {
         showToast('Password recovery detected. Please set your new password.', 'info');
       } else if (session?.user) {
         const userProfile = await getCurrentUserProfile();
+        if (userProfile?.accessDenied) {
+          showToast(userProfile.message, 'error');
+          setCurrentUser(null);
+          localStorage.removeItem('iiserm_current_user');
+          if (window.location.hash.includes('access_token') || window.location.search.includes('code=')) {
+            window.history.replaceState({}, document.title, window.location.pathname);
+          }
+          return;
+        }
         if (userProfile) {
           setCurrentUser(userProfile);
           if (event === 'SIGNED_IN') {
@@ -320,7 +329,7 @@ export default function App() {
   const userListings = listings.filter(item => item.sellerEmail?.toLowerCase() === currentUser?.email?.toLowerCase());
 
   return (
-    <div className="min-h-screen bg-canvas text-canvas-primary flex flex-col transition-colors duration-300" style={{backgroundColor:'var(--canvas-bg)',color:'var(--text-primary)'}}>
+    <div className="min-h-screen w-full max-w-full overflow-x-hidden bg-canvas text-canvas-primary flex flex-col transition-colors duration-300" style={{backgroundColor:'var(--canvas-bg)',color:'var(--text-primary)'}}>
       
       {/* Network Status Banner */}
       <OfflineBanner />

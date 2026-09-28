@@ -315,8 +315,20 @@ export async function getCurrentUserProfile() {
   if (!session?.user) return null;
 
   const userEmail = session.user.email || '';
-  const googleName = session.user.user_metadata?.full_name || session.user.user_metadata?.name || '';
+  const isCampusEmail = userEmail.toLowerCase().endsWith('@iisermohali.ac.in');
   const adminFlag = isUserAdmin(userEmail);
+
+  // Domain gatekeeper: enforce @iisermohali.ac.in or authorized admin
+  if (!isCampusEmail && !adminFlag) {
+    await signOutUser();
+    return {
+      accessDenied: true,
+      email: userEmail,
+      message: `Access Restricted: ${userEmail} is not an official @iisermohali.ac.in campus account.`
+    };
+  }
+
+  const googleName = session.user.user_metadata?.full_name || session.user.user_metadata?.name || '';
 
   try {
     const { data: profile } = await supabase

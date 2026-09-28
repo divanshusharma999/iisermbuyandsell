@@ -68,14 +68,13 @@ export default function FilterBar({
       </div>
 
       {/* Horizontal Category Scroll Tags */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 min-w-0 w-full overflow-hidden">
         <div className="flex items-center text-xs font-bold text-slate-500 dark:text-slate-400 shrink-0 mr-1">
           <Filter className="w-3.5 h-3.5 text-slate-400 mr-1" />
-          <span>Categories:</span>
-          <InfoTooltip text="Horizontal scrollable campus categories. Select a pill to filter the bulletin feed." position="right" />
+          <span className="hidden xs:inline">Categories:</span>
         </div>
 
-        <div className="flex gap-2 overflow-x-auto no-scrollbar py-1 scroll-smooth">
+        <div className="flex gap-2 overflow-x-auto no-scrollbar py-1 scroll-smooth min-w-0 flex-1">
           {CATEGORIES.map((cat) => {
             const isSelected = selectedCategory === cat;
             return (
