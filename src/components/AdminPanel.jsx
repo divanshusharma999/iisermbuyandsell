@@ -146,7 +146,7 @@ export default function AdminPanel({
                         <PhoneCall className="w-3.5 h-3.5 text-slate-500" />
                         <span>{item.reroutedToAdmin ? 'Chat Rerouted to Admin' : 'Reroute Chat (June Bridge)'}</span>
                       </button>
-                      <InfoTooltip text="Reroutes embedded WhatsApp number to Admin Support (+919999888877). Perfect for graduating seniors leaving room essentials over summer break." position="top" />
+                      <InfoTooltip text="Reroutes embedded WhatsApp number to Admin Support (+917988860162). Perfect for graduating seniors leaving room essentials over summer break." position="top" />
                     </div>
                   )}
 

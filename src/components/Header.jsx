@@ -125,10 +125,10 @@ export default function Header({
               ) : (
                 <button
                   onClick={onOpenAuth}
-                  className="flex items-center gap-1.5 px-3 py-2 text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-200 bg-white/40 dark:bg-slate-800/40 hover:bg-white/70 dark:hover:bg-slate-800/70 border border-slate-200/60 dark:border-white/10 rounded-2xl backdrop-blur-md transition-all"
+                  className="btn-primary flex items-center gap-1.5 px-3.5 py-2 text-xs sm:text-sm font-bold rounded-2xl shadow-sm transition-all"
                 >
-                  <User className="w-4 h-4 text-slate-500 dark:text-slate-400" />
-                  <span>Login Gateway</span>
+                  <User className="w-4 h-4" />
+                  <span>Sign In</span>
                 </button>
               )}
 

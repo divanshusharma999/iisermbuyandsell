@@ -4,7 +4,14 @@ import { isUserAdmin } from './data/mockData';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://mjcapuzqkopueaktfbge.supabase.co';
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1qY2FwdXpxa29wdWVha3RmYmdlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk4Mjk1MTEsImV4cCI6MjEwNTQwNTUxMX0.Gh2utuBn1j4UFH-eyUhSkiPH8XX3I7jOMpdkXISqK3Y';
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: true,
+    flowType: 'pkce'
+  }
+});
 
 // ====================================================================
 // DATA CONVERTERS (Database snake_case <-> App camelCase)
@@ -60,17 +67,78 @@ export function listingToRow(item) {
 // ====================================================================
 
 /**
- * Sign in with Google OAuth
+ * Sign in with Google OAuth via Supabase
  */
-export async function signInWithGoogle() {
+export async function signInWithGoogle(emailHint) {
+  const redirectUrl = window.location.origin;
+  const queryParams = {
+    access_type: 'offline',
+    prompt: 'select_account'
+  };
+
+  if (emailHint && emailHint.trim()) {
+    let clean = emailHint.trim().toLowerCase();
+    if (!clean.includes('@')) {
+      clean = `${clean}@iisermohali.ac.in`;
+    }
+    queryParams.login_hint = clean;
+  }
+
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: window.location.origin
+      redirectTo: redirectUrl,
+      skipBrowserRedirect: true,
+      queryParams
     }
   });
+
   if (error) throw error;
+  if (!data?.url) throw new Error("Could not retrieve Google OAuth authorization URL from Supabase.");
+
+  // If inside an iframe and top navigation is accessible, navigate top window to avoid iframe blocks
+  try {
+    if (window.top && window.top !== window.self) {
+      window.top.location.href = data.url;
+      return data;
+    }
+  } catch (navErr) {
+    console.warn("Iframe top navigation restricted, falling back to local window:", navErr);
+  }
+
+  window.location.href = data.url;
   return data;
+}
+
+/**
+ * Get direct Google OAuth authorization URL from Supabase
+ */
+export async function getGoogleOAuthUrl(emailHint) {
+  const redirectUrl = window.location.origin;
+  const queryParams = {
+    access_type: 'offline',
+    prompt: 'select_account'
+  };
+
+  if (emailHint && emailHint.trim()) {
+    let clean = emailHint.trim().toLowerCase();
+    if (!clean.includes('@')) {
+      clean = `${clean}@iisermohali.ac.in`;
+    }
+    queryParams.login_hint = clean;
+  }
+
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: redirectUrl,
+      skipBrowserRedirect: true,
+      queryParams
+    }
+  });
+
+  if (error) throw error;
+  return data?.url;
 }
 
 /**
@@ -146,6 +214,29 @@ export async function signInUser(email, password) {
 }
 
 /**
+ * Send password reset email with recovery link
+ */
+export async function sendPasswordResetEmail(email) {
+  const redirectUrl = window.location.origin;
+  const { data, error } = await supabase.auth.resetPasswordForEmail(email.toLowerCase(), {
+    redirectTo: redirectUrl
+  });
+  if (error) throw error;
+  return data;
+}
+
+/**
+ * Update user's password (used when clicking email confirmation / recovery link)
+ */
+export async function updateUserPassword(newPassword) {
+  const { data, error } = await supabase.auth.updateUser({
+    password: newPassword
+  });
+  if (error) throw error;
+  return data;
+}
+
+/**
  * Sign out current session
  */
 export async function signOutUser() {
@@ -210,17 +301,68 @@ export async function getCurrentUserProfile() {
 // ====================================================================
 // STORAGE SERVICE (Supabase Storage: product-images)
 // ====================================================================
+
+/**
+ * Client-side image compression to optimize high-res phone photos before uploading
+ */
+export async function compressImage(file, maxWidth = 1200, quality = 0.8) {
+  if (!file || !file.type.startsWith('image/')) return file;
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target?.result;
+      img.onload = () => {
+        let width = img.width;
+        let height = img.height;
+        if (width > maxWidth) {
+          height = Math.round((height * maxWidth) / width);
+          width = maxWidth;
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          resolve(file);
+          return;
+        }
+        ctx.drawImage(img, 0, 0, width, height);
+        canvas.toBlob(
+          (blob) => {
+            if (!blob) {
+              resolve(file);
+              return;
+            }
+            const compressedFile = new File([blob], file.name.replace(/\.[^/.]+$/, '.jpg'), {
+              type: 'image/jpeg',
+              lastModified: Date.now()
+            });
+            resolve(compressedFile);
+          },
+          'image/jpeg',
+          quality
+        );
+      };
+      img.onerror = () => resolve(file);
+    };
+    reader.onerror = () => resolve(file);
+  });
+}
+
 export async function uploadProductImage(file) {
   if (!file) return null;
 
   try {
-    const fileExt = file.name.split('.').pop() || 'jpg';
+    const optimizedFile = await compressImage(file);
+    const fileExt = optimizedFile.name?.split('.').pop() || 'jpg';
     const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}.${fileExt}`;
     const filePath = `listings/${fileName}`;
 
     const { error: uploadError } = await supabase.storage
       .from('product-images')
-      .upload(filePath, file, { upsert: true, cacheControl: '3600' });
+      .upload(filePath, optimizedFile, { upsert: true, cacheControl: '3600' });
 
     if (uploadError) {
       console.warn("Supabase Storage upload warning (falling back to object URL):", uploadError.message);

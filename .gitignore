@@ -6,12 +6,21 @@ node_modules
 dist
 dist-ssr
 
+# Environment variables & local secrets
+.env
+.env.local
+.env.*.local
+
 # Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
 *.log
 firebase-debug.log
 
-# System files
+# System & Editor files
 .DS_Store
 Thumbs.db
-
-.env
+.vscode/
+.idea/

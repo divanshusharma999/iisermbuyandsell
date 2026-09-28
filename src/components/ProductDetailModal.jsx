@@ -42,7 +42,7 @@ export default function ProductDetailModal({ item, onClose, onReportItem, curren
 
   const targetWhatsapp = item.reroutedToAdmin
     ? DEFAULT_ADMIN_SUPPORT_WHATSAPP
-    : (item.sellerWhatsapp || '+919876543210');
+    : (item.sellerWhatsapp || DEFAULT_ADMIN_SUPPORT_WHATSAPP);
 
   const generateWhatsappUrl = () => {
     const cleanNum = targetWhatsapp.replace(/[^0-9]/g, '');

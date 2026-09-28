@@ -21,14 +21,13 @@ export const CATEGORIES = [
 export const CONDITIONS = ['New', 'Like New', 'Good', 'Heavily Used'];
 
 export const ADMIN_EMAILS = [
-  'ms25237@iisermohali.ac.in',
-  'admin@marketplace.org'
+  'ms25237@iisermohali.ac.in'
 ];
 
 export const isUserAdmin = (email) => {
   if (!email) return false;
   const clean = email.trim().toLowerCase();
-  return clean.includes('admin') || ADMIN_EMAILS.includes(clean);
+  return ADMIN_EMAILS.includes(clean);
 };
 
 export const INITIAL_LISTINGS = [];

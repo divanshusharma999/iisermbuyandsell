@@ -1,0 +1,8 @@
+{
+  "name": "KollectoP2P - IISER Mohali Campus Marketplace",
+  "description": "Campus-exclusive peer-to-peer bulletin board locked to @iisermohali.ac.in. Buy & sell single items or hostel room clearout bundles.",
+  "requestFramePermissions": [],
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

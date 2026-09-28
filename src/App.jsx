@@ -7,12 +7,13 @@ import UploadModal from './components/UploadModal';
 import SellerDashboard from './components/SellerDashboard';
 import AdminPanel from './components/AdminPanel';
 import AuthModal from './components/AuthModal';
+import LoginPage from './components/LoginPage';
 import ToastNotification from './components/ToastNotification';
 import { ProductSkeletonLoader, PageTransitionLoader } from './components/SkeletonLoader';
 import NotFound from './components/NotFound';
 import OfflineBanner from './components/OfflineBanner';
 import { INITIAL_LISTINGS, INITIAL_BANNED_KEYWORDS } from './data/mockData';
-import { ShieldAlert, RotateCcw } from 'lucide-react';
+import { ShieldAlert, Heart } from 'lucide-react';
 import InfoTooltip from './components/InfoTooltip';
 import {
   fetchListingsFromSupabase,
@@ -25,6 +26,7 @@ import {
   fetchProfilesFromSupabase,
   toggleUserSuspensionInSupabase,
   getCurrentUserProfile,
+  signOutUser,
   supabase
 } from './supabase';
 
@@ -75,6 +77,7 @@ export default function App() {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authInitialMode, setAuthInitialMode] = useState('signin');
   const [isLoading, setIsLoading] = useState(true);
   const [isNavigating, setIsNavigating] = useState(false);
   const [toast, setToast] = useState(null);
@@ -85,9 +88,55 @@ export default function App() {
   };
 
   const handleTabChange = (tab) => {
+    if (!currentUser) {
+      showToast('Please sign in first to access marketplace features.', 'info');
+      setAuthInitialMode('signin');
+      setShowAuthModal(true);
+      return;
+    }
     setIsNavigating(true);
     setActiveTab(tab);
     setTimeout(() => setIsNavigating(false), 250);
+  };
+
+  const handleOpenUpload = () => {
+    if (!currentUser) {
+      showToast('Please sign in with your IISER Mohali ID to list items.', 'info');
+      setAuthInitialMode('signin');
+      setShowAuthModal(true);
+      return;
+    }
+    setShowUploadModal(true);
+  };
+
+  const handleOpenDashboard = () => {
+    if (!currentUser) {
+      showToast('Please sign in first to access your seller dashboard.', 'info');
+      setAuthInitialMode('signin');
+      setShowAuthModal(true);
+      return;
+    }
+    handleTabChange('dashboard');
+  };
+
+  const handleOpenAdminPanel = () => {
+    if (!currentUser) {
+      showToast('Please sign in with an authorized admin account.', 'info');
+      setAuthInitialMode('signin');
+      setShowAuthModal(true);
+      return;
+    }
+    handleTabChange('admin');
+  };
+
+  const handleSelectProduct = (item) => {
+    if (!currentUser) {
+      showToast('Please sign in first to view product details and contact seller.', 'info');
+      setAuthInitialMode('signin');
+      setShowAuthModal(true);
+      return;
+    }
+    setSelectedProduct(item);
   };
 
   // ─── Initial Load & Sync from Supabase Backend ────────────────────────────
@@ -116,16 +165,40 @@ export default function App() {
       if (activeUser) {
         setCurrentUser(activeUser);
       }
+
+      // Check if arriving via Password Recovery Link
+      if (window.location.hash.includes('type=recovery') || window.location.search.includes('type=recovery')) {
+        setAuthInitialMode('reset');
+        setShowAuthModal(true);
+        showToast('Password recovery detected. Please set your new password.', 'info');
+      } else if (window.location.hash.includes('access_token') || window.location.search.includes('code=')) {
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
       setIsLoading(false);
     }
 
     loadBackendData();
 
     // Listen to Supabase Auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (session?.user) {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        setAuthInitialMode('reset');
+        setShowAuthModal(true);
+        showToast('Password recovery detected. Please set your new password.', 'info');
+      } else if (session?.user) {
         const userProfile = await getCurrentUserProfile();
-        if (userProfile) setCurrentUser(userProfile);
+        if (userProfile) {
+          setCurrentUser(userProfile);
+          if (event === 'SIGNED_IN') {
+            showToast(`Welcome, ${userProfile.name || userProfile.email}!`);
+          }
+        }
+        if (window.location.hash.includes('access_token') || window.location.search.includes('code=')) {
+          window.history.replaceState({}, document.title, window.location.pathname);
+        }
+      } else if (event === 'SIGNED_OUT') {
+        setCurrentUser(null);
+        localStorage.removeItem('iiserm_current_user');
       }
     });
 
@@ -233,11 +306,15 @@ export default function App() {
     removeBannedKeywordFromSupabase(cleanKw);
   };
 
-  const handleResetSeedData = () => {
-    if (window.confirm('Reset all listings, banned keywords, and user accounts back to initial demo state?')) {
-      localStorage.clear();
-      window.location.reload();
+  const handleSignOut = async () => {
+    try {
+      await signOutUser();
+    } catch (e) {
+      console.warn("Sign out exception:", e);
     }
+    setCurrentUser(null);
+    localStorage.removeItem('iiserm_current_user');
+    showToast('Signed out successfully.');
   };
 
   const userListings = listings.filter(item => item.sellerEmail?.toLowerCase() === currentUser?.email?.toLowerCase());
@@ -254,10 +331,14 @@ export default function App() {
       {/* Top Navigation Bar */}
       <Header
         currentUser={currentUser}
-        onOpenUpload={() => setShowUploadModal(true)}
-        onOpenDashboard={() => handleTabChange('dashboard')}
-        onOpenAdminPanel={() => handleTabChange('admin')}
-        onOpenAuth={() => setShowAuthModal(true)}
+        onOpenUpload={handleOpenUpload}
+        onOpenDashboard={handleOpenDashboard}
+        onOpenAdminPanel={handleOpenAdminPanel}
+        onOpenAuth={() => {
+          setAuthInitialMode('signin');
+          setShowAuthModal(true);
+        }}
+        onSignOut={handleSignOut}
         activeTab={activeTab}
         setActiveTab={handleTabChange}
         darkMode={darkMode}
@@ -275,81 +356,101 @@ export default function App() {
       {/* Main Content Body */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
         
-        {/* BUYER FEED VIEW */}
-        {activeTab === 'feed' && (
+        {isLoading ? (
+          <ProductSkeletonLoader count={6} />
+        ) : !currentUser ? (
+          /* ========================================================================= */
+          /* DEFAULT GATEWAY: Website opens on Login Page for unauthenticated users    */
+          /* ========================================================================= */
+          <LoginPage
+            initialMode={authInitialMode}
+            onSaveProfile={(profile) => {
+              setCurrentUser(profile);
+              if (!users.some(u => u.email?.toLowerCase() === profile.email?.toLowerCase())) {
+                setUsers(prev => [{ ...profile, isSuspended: false }, ...prev]);
+              }
+              showToast(`Welcome to KollectoP2P, ${profile.name || profile.email}!`);
+              setShowAuthModal(false);
+            }}
+          />
+        ) : (
+          /* ========================================================================= */
+          /* AUTHENTICATED USER: Full access to Marketplace, Dashboard, and Admin       */
+          /* ========================================================================= */
           <>
-            <FilterBar
-              searchQuery={searchQuery}
-              setSearchQuery={setSearchQuery}
-              selectedCategory={selectedCategory}
-              setSelectedCategory={setSelectedCategory}
-              sortBy={sortBy}
-              setSortBy={setSortBy}
-              totalResults={filteredListings.length}
-            />
-            {isLoading ? (
-              <ProductSkeletonLoader count={6} />
-            ) : (
-              <ProductGrid
-                listings={filteredListings}
-                onSelectProduct={(item) => setSelectedProduct(item)}
-                onOpenUpload={() => setShowUploadModal(true)}
-                onResetFilters={() => {
-                  setSearchQuery('');
-                  setSelectedCategory('All');
-                }}
+            {/* BUYER FEED VIEW */}
+            {activeTab === 'feed' && (
+              <>
+                <FilterBar
+                  searchQuery={searchQuery}
+                  setSearchQuery={setSearchQuery}
+                  selectedCategory={selectedCategory}
+                  setSelectedCategory={setSelectedCategory}
+                  sortBy={sortBy}
+                  setSortBy={setSortBy}
+                  totalResults={filteredListings.length}
+                />
+                <ProductGrid
+                  listings={filteredListings}
+                  onSelectProduct={handleSelectProduct}
+                  onOpenUpload={handleOpenUpload}
+                  onResetFilters={() => {
+                    setSearchQuery('');
+                    setSelectedCategory('All');
+                  }}
+                />
+              </>
+            )}
+
+            {/* SELLER DASHBOARD VIEW */}
+            {activeTab === 'dashboard' && (
+              <SellerDashboard
+                userListings={userListings}
+                onExtendTimer={handleExtendTimer}
+                onMarkAsSold={handleMarkAsSold}
+                onDeleteListing={handleDeleteListing}
+                onOpenUpload={handleOpenUpload}
+                currentUser={currentUser}
               />
             )}
+
+            {/* ADMIN PANEL VIEW */}
+            {activeTab === 'admin' && (
+              currentUser?.isAdmin ? (
+                <AdminPanel
+                  listings={listings}
+                  users={users}
+                  onToggleSuspendUser={handleToggleSuspendUser}
+                  onForceDeleteListing={handleForceDeleteListing}
+                  onToggleRerouteChat={handleToggleRerouteChat}
+                  bannedKeywords={bannedKeywords}
+                  onAddBannedKeyword={handleAddBannedKeyword}
+                  onRemoveBannedKeyword={handleRemoveBannedKeyword}
+                />
+              ) : (
+                <div className="max-w-md mx-auto my-16 p-8 glass-card rounded-3xl text-center space-y-4 border border-rose-500/30">
+                  <div className="w-12 h-12 bg-rose-500/10 text-rose-500 rounded-2xl flex items-center justify-center mx-auto font-bold text-xl">
+                    🛡️
+                  </div>
+                  <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100">Access Restricted</h2>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    You do not have administrative privileges to view the Moderator Panel. Please sign in with an authorized Admin account.
+                  </p>
+                  <button
+                    onClick={() => handleTabChange('feed')}
+                    className="px-4 py-2 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-semibold text-xs transition-all hover:scale-105"
+                  >
+                    Return to Campus Marketplace
+                  </button>
+                </div>
+              )
+            )}
+
+            {/* 404 NOT FOUND VIEW */}
+            {activeTab === '404' && (
+              <NotFound onGoHome={() => handleTabChange('feed')} />
+            )}
           </>
-        )}
-
-        {/* SELLER DASHBOARD VIEW */}
-        {activeTab === 'dashboard' && (
-          <SellerDashboard
-            userListings={userListings}
-            onExtendTimer={handleExtendTimer}
-            onMarkAsSold={handleMarkAsSold}
-            onDeleteListing={handleDeleteListing}
-            onOpenUpload={() => setShowUploadModal(true)}
-            currentUser={currentUser}
-          />
-        )}
-
-        {/* ADMIN PANEL VIEW */}
-        {activeTab === 'admin' && (
-          currentUser?.isAdmin ? (
-            <AdminPanel
-              listings={listings}
-              users={users}
-              onToggleSuspendUser={handleToggleSuspendUser}
-              onForceDeleteListing={handleForceDeleteListing}
-              onToggleRerouteChat={handleToggleRerouteChat}
-              bannedKeywords={bannedKeywords}
-              onAddBannedKeyword={handleAddBannedKeyword}
-              onRemoveBannedKeyword={handleRemoveBannedKeyword}
-            />
-          ) : (
-            <div className="max-w-md mx-auto my-16 p-8 glass-card rounded-3xl text-center space-y-4 border border-rose-500/30">
-              <div className="w-12 h-12 bg-rose-500/10 text-rose-500 rounded-2xl flex items-center justify-center mx-auto font-bold text-xl">
-                🛡️
-              </div>
-              <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100">Access Restricted</h2>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                You do not have administrative privileges to view the Moderator Panel. Please sign in with an authorized Admin account.
-              </p>
-              <button
-                onClick={() => handleTabChange('feed')}
-                className="px-4 py-2 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-semibold text-xs transition-all hover:scale-105"
-              >
-                Return to Campus Marketplace
-              </button>
-            </div>
-          )
-        )}
-
-        {/* 404 NOT FOUND VIEW */}
-        {activeTab === '404' && (
-          <NotFound onGoHome={() => handleTabChange('feed')} />
         )}
 
       </main>
@@ -357,7 +458,7 @@ export default function App() {
       {/* Footer */}
       <footer className="glass-header border-t border-b-0 py-6 mt-auto transition-colors duration-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500 dark:text-slate-400">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <img src="/logo.jpg" alt="KollectoP2P" className="w-5 h-5 rounded-md" />
             <span className="font-bold text-slate-700 dark:text-slate-300">KollectoP2P</span>
             <span className="text-slate-300 dark:text-slate-600">•</span>
@@ -367,13 +468,14 @@ export default function App() {
             <InfoTooltip text="Zero-friction campus bulletin board routing off-platform to WhatsApp." position="top" />
           </div>
 
-          <button
-            onClick={handleResetSeedData}
-            className="flex items-center gap-1 text-slate-400 hover:text-rose-500 transition-colors text-[11px]"
-          >
-            <RotateCcw className="w-3 h-3" />
-            <span>Reset Demo Seed Data</span>
-          </button>
+          <div className="flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400">
+            <span>Created with</span>
+            <Heart className="w-3.5 h-3.5 text-rose-500 fill-rose-500 inline-block" />
+            <span>by</span>
+            <span className="font-semibold text-slate-700 dark:text-slate-200">Divanshu MS25237</span>
+            <span>and</span>
+            <span className="font-semibold text-slate-700 dark:text-slate-200">Ram Ratan Sankhla MS25231</span>
+          </div>
         </div>
       </footer>
 
@@ -382,7 +484,7 @@ export default function App() {
         <ProductDetailModal
           item={selectedProduct}
           onClose={() => setSelectedProduct(null)}
-          onReportItem={(id, reason) => alert(`Report for item ${id} received: ${reason}`)}
+          onReportItem={(id, reason) => showToast(`Report for item ${id} received: ${reason}`, 'info')}
           currentUser={currentUser}
         />
       )}
@@ -401,14 +503,19 @@ export default function App() {
       {showAuthModal && (
         <AuthModal
           currentUser={currentUser}
+          initialMode={authInitialMode}
           onSaveProfile={(profile) => {
             setCurrentUser(profile);
             if (!users.some(u => u.email === profile.email)) {
               setUsers([...users, { ...profile, isSuspended: false }]);
             }
             showToast('Profile updated!');
+            setShowAuthModal(false);
           }}
-          onClose={() => setShowAuthModal(false)}
+          onClose={() => {
+            setShowAuthModal(false);
+            setAuthInitialMode('signin');
+          }}
         />
       )}
 
