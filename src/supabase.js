@@ -1,8 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
 import { isUserAdmin } from './data/mockData';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://mjcapuzqkopueaktfbge.supabase.co';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1qY2FwdXpxa29wdWVha3RmYmdlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk4Mjk1MTEsImV4cCI6MjEwNTQwNTUxMX0.Gh2utuBn1j4UFH-eyUhSkiPH8XX3I7jOMpdkXISqK3Y';
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://ztbloxfwagbjbcpmosft.supabase.co';
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp0YmxveGZ3YWdiamJjcG1vc2Z0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA2MTE4NDcsImV4cCI6MjEwNjE4Nzg0N30.Q7d58oPrdaXJBqFXxZLek1CwprlVzlDtnk5lNQOwWh0';
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
