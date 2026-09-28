@@ -142,7 +142,7 @@ export default function Header({
                   </div>
 
                   <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center justify-between">
-                    <span>Quick Switch Persona</span>
+                    <span>Account</span>
                     <Sparkles className="w-3 h-3 text-slate-400" />
                   </div>
 
@@ -151,9 +151,9 @@ export default function Header({
                       onOpenAuth();
                       setShowPersonaMenu(false);
                     }}
-                    className="w-full text-left px-3 py-2 text-xs text-slate-700 dark:text-slate-300 hover:bg-white/50 dark:hover:bg-slate-800/50 rounded-xl transition-colors flex items-center justify-between"
+                    className="w-full text-left px-3 py-2 text-xs text-slate-700 dark:text-slate-300 hover:bg-white/50 dark:hover:bg-slate-800/50 rounded-xl transition-colors flex items-center justify-between cursor-pointer"
                   >
-                    <span>Switch / Edit Profile</span>
+                    <span>Edit Profile & WhatsApp</span>
                     <User className="w-3.5 h-3.5 text-slate-400" />
                   </button>
 

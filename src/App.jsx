@@ -358,14 +358,16 @@ export default function App() {
         
         {isLoading ? (
           <ProductSkeletonLoader count={6} />
-        ) : !currentUser ? (
+        ) : (!currentUser || currentUser.needsOnboarding) ? (
           /* ========================================================================= */
-          /* DEFAULT GATEWAY: Website opens on Login Page for unauthenticated users    */
+          /* DEFAULT GATEWAY: Google OAuth Login OR First-Time Profile Onboarding      */
           /* ========================================================================= */
           <LoginPage
-            initialMode={authInitialMode}
+            currentUser={currentUser}
             onSaveProfile={(profile) => {
-              setCurrentUser(profile);
+              const updated = { ...profile, needsOnboarding: false };
+              setCurrentUser(updated);
+              localStorage.setItem('iiserm_current_user', JSON.stringify(updated));
               if (!users.some(u => u.email?.toLowerCase() === profile.email?.toLowerCase())) {
                 setUsers(prev => [{ ...profile, isSuspended: false }, ...prev]);
               }
@@ -503,18 +505,19 @@ export default function App() {
       {showAuthModal && (
         <AuthModal
           currentUser={currentUser}
-          initialMode={authInitialMode}
           onSaveProfile={(profile) => {
-            setCurrentUser(profile);
-            if (!users.some(u => u.email === profile.email)) {
-              setUsers([...users, { ...profile, isSuspended: false }]);
+            const updated = { ...profile, needsOnboarding: false };
+            setCurrentUser(updated);
+            localStorage.setItem('iiserm_current_user', JSON.stringify(updated));
+            if (!users.some(u => u.email?.toLowerCase() === profile.email?.toLowerCase())) {
+              setUsers(prev => [{ ...profile, isSuspended: false }, ...prev]);
             }
             showToast('Profile updated!');
             setShowAuthModal(false);
           }}
+          onSignOut={handleSignOut}
           onClose={() => {
             setShowAuthModal(false);
-            setAuthInitialMode('signin');
           }}
         />
       )}

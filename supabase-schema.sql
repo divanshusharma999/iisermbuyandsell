@@ -111,13 +111,11 @@ BEGIN
     NEW.id,
     NEW.email,
     COALESCE(NEW.raw_user_meta_data->>'name', SPLIT_PART(NEW.email, '@', 1)),
-    COALESCE(NEW.raw_user_meta_data->>'whatsapp', '+919876543210'),
+    COALESCE(NEW.raw_user_meta_data->>'whatsapp', ''),
     CASE WHEN NEW.email LIKE '%admin%' THEN true ELSE false END,
     false
   )
-  ON CONFLICT (id) DO UPDATE SET
-    name = EXCLUDED.name,
-    whatsapp = EXCLUDED.whatsapp;
+  ON CONFLICT (id) DO NOTHING;
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;

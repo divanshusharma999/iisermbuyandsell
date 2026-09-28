@@ -147,30 +147,93 @@ export async function getGoogleOAuthUrl(emailHint) {
 export async function updateUserProfile(email, name, whatsapp) {
   try {
     const { data: { session } } = await supabase.auth.getSession();
+    const cleanEmail = email.toLowerCase().trim();
+    const cleanName = name.trim();
+    const cleanPhone = whatsapp.trim();
+    const adminFlag = isUserAdmin(cleanEmail);
+
     if (session?.user) {
       await supabase.from('profiles').upsert({
         id: session.user.id,
-        email: email.toLowerCase(),
-        name,
-        whatsapp,
-        is_admin: isUserAdmin(email),
+        email: cleanEmail,
+        name: cleanName,
+        whatsapp: cleanPhone,
+        is_admin: adminFlag,
         updated_at: new Date().toISOString()
-      });
+      }, { onConflict: 'id' });
+
       await supabase.auth.updateUser({
-        data: { name, whatsapp }
+        data: { name: cleanName, whatsapp: cleanPhone }
       });
     } else {
       // Upsert by email if no session (fallback)
       await supabase.from('profiles').upsert({
-        email: email.toLowerCase(),
-        name,
-        whatsapp,
-        is_admin: isUserAdmin(email)
+        email: cleanEmail,
+        name: cleanName,
+        whatsapp: cleanPhone,
+        is_admin: adminFlag
       }, { onConflict: 'email' });
     }
   } catch (err) {
     console.warn("Could not sync profile update to Supabase:", err.message);
   }
+}
+
+/**
+ * Save / complete first-time user profile in Supabase database
+ */
+export async function saveUserProfile(userId, email, name, whatsapp) {
+  const cleanEmail = email.toLowerCase().trim();
+  const cleanName = name.trim();
+  const cleanPhone = whatsapp.trim();
+  const adminFlag = isUserAdmin(cleanEmail);
+
+  // 1. Upsert into Supabase public.profiles table
+  const { data, error } = await supabase.from('profiles').upsert({
+    id: userId,
+    email: cleanEmail,
+    name: cleanName,
+    whatsapp: cleanPhone,
+    is_admin: adminFlag,
+    is_suspended: false,
+    created_at: new Date().toISOString()
+  }, { onConflict: 'id' }).select().single();
+
+  if (error) {
+    console.error("Error saving profile to Supabase:", error);
+    // If select fails due to RLS, try simple upsert without select
+    await supabase.from('profiles').upsert({
+      id: userId,
+      email: cleanEmail,
+      name: cleanName,
+      whatsapp: cleanPhone,
+      is_admin: adminFlag,
+      is_suspended: false
+    });
+  }
+
+  // 2. Also update Supabase Auth user metadata
+  try {
+    await supabase.auth.updateUser({
+      data: {
+        name: cleanName,
+        whatsapp: cleanPhone
+      }
+    });
+  } catch (authErr) {
+    console.warn("Could not update auth user metadata:", authErr.message);
+  }
+
+  return {
+    id: userId,
+    email: cleanEmail,
+    name: cleanName,
+    whatsapp: cleanPhone,
+    isAdmin: adminFlag,
+    isSuspended: false,
+    needsOnboarding: false,
+    provider: 'google'
+  };
 }
 
 /**
@@ -245,55 +308,62 @@ export async function signOutUser() {
 }
 
 /**
- * Get current session and user profile
+ * Get current session and user profile from Supabase
  */
 export async function getCurrentUserProfile() {
   const { data: { session } } = await supabase.auth.getSession();
   if (!session?.user) return null;
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', session.user.id)
-    .single();
-
-  if (profile) {
-    return {
-      id: profile.id,
-      email: profile.email,
-      name: profile.name || session.user.user_metadata?.full_name || session.user.user_metadata?.name || profile.email.split('@')[0],
-      whatsapp: profile.whatsapp || session.user.user_metadata?.whatsapp || '',
-      isAdmin: profile.is_admin || isUserAdmin(profile.email),
-      isSuspended: profile.is_suspended,
-      provider: session.user.app_metadata?.provider || 'email'
-    };
-  }
-
-  // Fresh Google OAuth or Auth user without profile table row yet
-  const email = session.user.email || '';
-  const name = session.user.user_metadata?.full_name || session.user.user_metadata?.name || email.split('@')[0];
-  const whatsapp = session.user.user_metadata?.whatsapp || '';
+  const userEmail = session.user.email || '';
+  const googleName = session.user.user_metadata?.full_name || session.user.user_metadata?.name || '';
+  const adminFlag = isUserAdmin(userEmail);
 
   try {
-    await supabase.from('profiles').upsert({
-      id: session.user.id,
-      email: email.toLowerCase(),
-      name,
-      whatsapp,
-      is_admin: isUserAdmin(email),
-      is_suspended: false
-    });
-  } catch (e) {
-    console.warn("Auto-upsert profile warning:", e.message);
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', session.user.id)
+      .maybeSingle();
+
+    if (profile && profile.whatsapp && profile.whatsapp.trim()) {
+      return {
+        id: profile.id,
+        email: profile.email || userEmail,
+        name: profile.name || googleName || userEmail.split('@')[0],
+        whatsapp: profile.whatsapp,
+        isAdmin: profile.is_admin || adminFlag,
+        isSuspended: profile.is_suspended || false,
+        needsOnboarding: false,
+        provider: session.user.app_metadata?.provider || 'google'
+      };
+    }
+
+    // If profile exists but lacks whatsapp number
+    if (profile) {
+      return {
+        id: profile.id,
+        email: profile.email || userEmail,
+        name: profile.name || googleName || userEmail.split('@')[0],
+        whatsapp: profile.whatsapp || '',
+        isAdmin: profile.is_admin || adminFlag,
+        isSuspended: profile.is_suspended || false,
+        needsOnboarding: true,
+        provider: session.user.app_metadata?.provider || 'google'
+      };
+    }
+  } catch (err) {
+    console.warn("Could not query profile table:", err.message);
   }
 
+  // First time sign-in: Brand new Google user without a profile in Supabase
   return {
     id: session.user.id,
-    email: email,
-    name: name,
-    whatsapp: whatsapp,
-    isAdmin: isUserAdmin(email),
+    email: userEmail,
+    name: googleName || userEmail.split('@')[0],
+    whatsapp: '',
+    isAdmin: adminFlag,
     isSuspended: false,
+    needsOnboarding: true,
     provider: session.user.app_metadata?.provider || 'google'
   };
 }

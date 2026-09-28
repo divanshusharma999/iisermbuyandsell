@@ -21,7 +21,9 @@ export const CATEGORIES = [
 export const CONDITIONS = ['New', 'Like New', 'Good', 'Heavily Used'];
 
 export const ADMIN_EMAILS = [
-  'ms25237@iisermohali.ac.in'
+  'ms25237@iisermohali.ac.in',
+  'sharmadivanshu999@gmail.com',
+  'admin@iisermohali.ac.in'
 ];
 
 export const isUserAdmin = (email) => {
