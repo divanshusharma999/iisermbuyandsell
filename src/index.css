@@ -1,0 +1,272 @@
+@import "tailwindcss";
+
+/* ─── Apple UI Design System — CSS Token Layer ──────────────── */
+
+:root {
+  /* Canvas */
+  --canvas-bg: #F5F5F7;
+  --canvas-bg-alt: #FFFFFF;
+
+  /* Typography */
+  --text-primary: #1D1D1F;
+  --text-secondary: #6E6E73;
+  --text-tertiary: #98989D;
+
+  /* Glass surfaces */
+  --glass-bg: rgba(255, 255, 255, 0.65);
+  --glass-bg-strong: rgba(255, 255, 255, 0.85);
+  --glass-bg-subtle: rgba(255, 255, 255, 0.45);
+  --glass-border: rgba(0, 0, 0, 0.05);
+  --glass-border-strong: rgba(0, 0, 0, 0.1);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  --glass-shadow-lg: 0 25px 50px rgba(0, 0, 0, 0.12);
+
+  /* Apple Action Colors */
+  --apple-blue: #0071E3;
+  --apple-blue-hover: #0077ED;
+  --apple-success: #28CD41;
+  --apple-warning: #FF9F0A;
+  --apple-danger: #FF3B30;
+  --apple-danger-hover: #E6352B;
+
+  /* Card hover */
+  --card-hover-bg: rgba(255, 255, 255, 0.80);
+  --card-hover-border: rgba(0, 0, 0, 0.1);
+  --card-hover-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+}
+
+.dark {
+  /* Canvas */
+  --canvas-bg: #000000;
+  --canvas-bg-alt: #111111;
+
+  /* Typography */
+  --text-primary: #F5F5F7;
+  --text-secondary: #86868B;
+  --text-tertiary: #6E6E73;
+
+  /* Glass surfaces */
+  --glass-bg: rgba(28, 28, 30, 0.60);
+  --glass-bg-strong: rgba(28, 28, 30, 0.85);
+  --glass-bg-subtle: rgba(28, 28, 30, 0.40);
+  --glass-border: rgba(255, 255, 255, 0.10);
+  --glass-border-strong: rgba(255, 255, 255, 0.18);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+  --glass-shadow-lg: 0 25px 50px rgba(0, 0, 0, 0.65);
+
+  /* Apple Action Colors — dark variants */
+  --apple-blue: #0A84FF;
+  --apple-blue-hover: #409CFF;
+  --apple-success: #30D158;
+  --apple-warning: #FFD60A;
+  --apple-danger: #FF453A;
+  --apple-danger-hover: #FF6961;
+
+  /* Card hover */
+  --card-hover-bg: rgba(58, 58, 60, 0.80);
+  --card-hover-border: rgba(255, 255, 255, 0.20);
+  --card-hover-shadow: 0 20px 40px rgba(0, 0, 0, 0.55);
+}
+
+/* ─── Base Layer ─────────────────────────────────────────────── */
+
+@layer base {
+  html {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
+      "Helvetica Neue", "Arial", sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-color: var(--canvas-bg);
+    color: var(--text-primary);
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  body {
+    background-color: var(--canvas-bg);
+    color: var(--text-primary);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
+      "Helvetica Neue", "Arial", sans-serif;
+  }
+
+  /* Custom Branded Focus Ring */
+  *:focus-visible {
+    outline: 2px solid var(--apple-blue) !important;
+    outline-offset: 2px !important;
+    border-radius: 8px;
+  }
+
+  /* Minimal Transparent Scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(140, 140, 145, 0.35);
+    border-radius: 999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(140, 140, 145, 0.6);
+  }
+}
+
+/* ─── Glassmorphism Component System ─────────────────────────── */
+
+/* Header / Footer Bar */
+.glass-header {
+  background: var(--glass-bg-strong);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-bottom: 1px solid var(--glass-border);
+}
+
+/* Generic Cards */
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+
+/* Card with hover lift */
+.glass-card-hover {
+  transition: background 0.3s cubic-bezier(0.25, 0.1, 0.25, 1.0),
+              border-color 0.3s cubic-bezier(0.25, 0.1, 0.25, 1.0),
+              box-shadow 0.3s cubic-bezier(0.25, 0.1, 0.25, 1.0),
+              transform 0.3s cubic-bezier(0.25, 0.1, 0.25, 1.0);
+}
+.glass-card-hover:hover {
+  background: var(--card-hover-bg);
+  border-color: var(--card-hover-border);
+  box-shadow: var(--card-hover-shadow);
+  transform: translateY(-3px);
+}
+
+/* Modals / Panels */
+.glass-modal {
+  background: var(--glass-bg-strong);
+  backdrop-filter: blur(24px) saturate(190%);
+  -webkit-backdrop-filter: blur(24px) saturate(190%);
+  border: 1px solid var(--glass-border-strong);
+  box-shadow: var(--glass-shadow-lg);
+}
+
+/* Inputs */
+.glass-input {
+  background: var(--glass-bg-subtle);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid var(--glass-border-strong);
+  color: var(--text-primary);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.glass-input:focus {
+  border-color: var(--apple-blue);
+  box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.18);
+  outline: none;
+}
+.dark .glass-input:focus {
+  box-shadow: 0 0 0 3px rgba(10, 132, 255, 0.22);
+}
+
+/* Pill Badges */
+.glass-badge {
+  background: var(--glass-bg-subtle);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1px solid var(--glass-border);
+}
+
+/* ─── Apple Blue Primary Button ──────────────────────────────── */
+.btn-primary {
+  background: var(--apple-blue);
+  color: #FFFFFF;
+  border: none;
+  border-radius: 980px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  transition: background 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+  box-shadow: 0 2px 12px rgba(0, 113, 227, 0.35);
+}
+.btn-primary:hover {
+  background: var(--apple-blue-hover);
+  box-shadow: 0 4px 18px rgba(0, 113, 227, 0.45);
+}
+.btn-primary:active {
+  transform: scale(0.97);
+}
+.dark .btn-primary {
+  box-shadow: 0 2px 12px rgba(10, 132, 255, 0.4);
+}
+.dark .btn-primary:hover {
+  box-shadow: 0 4px 18px rgba(10, 132, 255, 0.5);
+}
+
+/* Danger / Destructive Button */
+.btn-danger {
+  background: var(--apple-danger);
+  color: #FFFFFF;
+  border: none;
+  border-radius: 980px;
+  font-weight: 700;
+  transition: background 0.2s ease, transform 0.15s ease;
+}
+.btn-danger:hover {
+  background: var(--apple-danger-hover);
+}
+.btn-danger:active {
+  transform: scale(0.97);
+}
+
+/* Success / Confirm Button */
+.btn-success {
+  background: var(--apple-success);
+  color: #FFFFFF;
+  border: none;
+  border-radius: 980px;
+  font-weight: 700;
+  transition: background 0.2s ease, transform 0.15s ease;
+}
+.btn-success:active {
+  transform: scale(0.97);
+}
+
+/* ─── Typography Utility Classes ─────────────────────────────── */
+.text-canvas-primary   { color: var(--text-primary); }
+.text-canvas-secondary { color: var(--text-secondary); }
+.text-canvas-tertiary  { color: var(--text-tertiary); }
+.bg-canvas             { background-color: var(--canvas-bg); }
+.bg-canvas-alt         { background-color: var(--canvas-bg-alt); }
+
+/* ─── Scrollbar Hiding ───────────────────────────────────────── */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ─── Masonry Grid ───────────────────────────────────────────── */
+.masonry-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.25rem;
+}
+@media (min-width: 640px) {
+  .masonry-grid {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  }
+}
+
+/* ─── Tooltip ────────────────────────────────────────────────── */
+.tooltip-popover {
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 0 0 1px var(--glass-border);
+  animation: fadeIn 0.15s ease-out;
+}
+.dark .tooltip-popover {
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 0 0 1px var(--glass-border);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.95) translateY(4px); }
+  to   { opacity: 1; transform: scale(1)    translateY(0); }
+}

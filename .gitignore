@@ -1,0 +1,17 @@
+# Dependencies
+node_modules
+.pnpm-store
+
+# Production build
+dist
+dist-ssr
+
+# Logs
+*.log
+firebase-debug.log
+
+# System files
+.DS_Store
+Thumbs.db
+
+.env
