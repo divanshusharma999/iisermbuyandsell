@@ -84,7 +84,7 @@ export default function AuthModal({ currentUser, onSaveProfile, onClose, onSignO
         const saved = await saveUserProfile(userId, email, cleanName, cleanPhone);
         onSaveProfile(saved);
       } else {
-        await updateUserProfile(email, cleanName, cleanPhone);
+        await updateUserProfile(email, cleanName, cleanPhone, userId);
         onSaveProfile({
           ...currentUser,
           name: cleanName,
@@ -102,17 +102,26 @@ export default function AuthModal({ currentUser, onSaveProfile, onClose, onSignO
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/40 dark:bg-slate-950/70 backdrop-blur-xl flex items-center justify-center p-4 animate-in fade-in">
-      <div className="glass-modal rounded-3xl max-w-md w-full p-6 shadow-2xl relative border border-slate-200/70 dark:border-white/10">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in">
+      <div
+        className="rounded-3xl max-w-md w-full p-6 shadow-2xl relative border"
+        style={{
+          backgroundColor: 'var(--bg-surface)',
+          borderColor: 'var(--border-card)'
+        }}
+      >
         
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-slate-200/50 dark:border-white/10 pb-4 mb-4">
+        <div className="flex items-center justify-between border-b pb-4 mb-4" style={{ borderColor: 'var(--border-card)' }}>
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl overflow-hidden border border-slate-200/60 dark:border-white/10 shadow-sm shrink-0">
+            <div
+              className="w-10 h-10 rounded-2xl overflow-hidden border shadow-sm shrink-0"
+              style={{ borderColor: 'var(--border-card)' }}
+            >
               <img src="/logo.jpg" alt="KollectoP2P" className="w-full h-full object-cover" />
             </div>
             <div>
-              <h3 className="font-extrabold text-slate-900 dark:text-white text-base flex items-center gap-1.5">
+              <h3 className="heading-card-title font-extrabold text-base flex items-center gap-1.5">
                 <span>
                   {isNeedsOnboarding
                     ? 'Complete Your Profile'
@@ -120,14 +129,14 @@ export default function AuthModal({ currentUser, onSaveProfile, onClose, onSignO
                     ? 'Edit Profile & WhatsApp'
                     : 'Campus Google Sign-In'}
                 </span>
-                <InfoTooltip text="Marketplace locked to @iisermohali.ac.in Google accounts." position="bottom" />
               </h3>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400">IISER Mohali Campus Marketplace</p>
+              <p className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>IISER Mohali Campus Marketplace</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 text-slate-400 hover:text-slate-800 dark:hover:text-white rounded-xl hover:bg-white/40 dark:hover:bg-slate-800/40 transition-colors cursor-pointer"
+            className="p-1.5 rounded-xl transition-colors cursor-pointer"
+            style={{ color: 'var(--text-secondary)' }}
             aria-label="Close"
           >
             <X className="w-5 h-5" />
@@ -136,25 +145,29 @@ export default function AuthModal({ currentUser, onSaveProfile, onClose, onSignO
 
         {/* Error Alert */}
         {errorMsg && (
-          <div className="mb-4 p-3 glass-badge border-rose-500/30 rounded-2xl text-rose-700 dark:text-rose-300 text-xs font-semibold leading-relaxed flex items-start gap-2">
+          <div className="mb-4 p-3 border border-rose-500/30 rounded-2xl text-rose-600 text-xs font-semibold leading-relaxed flex items-start gap-2 bg-rose-500/10">
             <AlertCircle className="w-4 h-4 shrink-0 text-rose-500 mt-0.5" />
             <span>{errorMsg}</span>
           </div>
         )}
 
-        {/* ========================================================================= */}
-        {/* CASE 1: LOGGED IN USER (EDIT PROFILE OR FIRST-TIME ONBOARDING)            */}
-        {/* ========================================================================= */}
+        {/* CASE 1: LOGGED IN USER */}
         {isAlreadyLoggedIn ? (
           <form onSubmit={handleSaveProfile} className="space-y-4 text-xs">
             
             {isNeedsOnboarding && (
-              <div className="p-3.5 rounded-2xl bg-emerald-500/10 dark:bg-emerald-500/15 border border-emerald-500/20 text-xs">
-                <div className="font-bold text-emerald-800 dark:text-emerald-300 flex items-center gap-1.5">
-                  <Sparkles className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+              <div
+                className="p-3.5 rounded-2xl border text-xs"
+                style={{
+                  backgroundColor: 'var(--bg-body)',
+                  borderColor: 'var(--border-card)'
+                }}
+              >
+                <div className="font-bold flex items-center gap-1.5" style={{ color: 'var(--badge-stock)' }}>
+                  <Sparkles className="w-4 h-4" />
                   <span>Almost Done! Confirm Details</span>
                 </div>
-                <p className="text-[11px] text-emerald-700/90 dark:text-emerald-300/90 mt-1 leading-relaxed">
+                <p className="text-[11px] mt-1 leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
                   Please provide your name and WhatsApp number once so students can message you directly.
                 </p>
               </div>
@@ -162,19 +175,26 @@ export default function AuthModal({ currentUser, onSaveProfile, onClose, onSignO
 
             {/* Email Address (Read-Only) */}
             <div>
-              <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1.5">
-                <Mail className="w-3.5 h-3.5 text-blue-500" />
+              <label className="block font-bold mb-1 flex items-center gap-1.5" style={{ color: 'var(--text-primary)' }}>
+                <Mail className="w-3.5 h-3.5 text-section-icon" />
                 <span>Google Account Email</span>
               </label>
-              <div className="glass-input w-full rounded-xl p-2.5 text-xs font-mono text-slate-600 dark:text-slate-300 bg-slate-100/50 dark:bg-slate-800/50 cursor-not-allowed border border-slate-200/50 dark:border-white/5 select-none">
+              <div
+                className="w-full rounded-xl p-2.5 text-xs font-mono cursor-not-allowed border select-none"
+                style={{
+                  backgroundColor: 'var(--bg-body)',
+                  borderColor: 'var(--border-card)',
+                  color: 'var(--text-secondary)'
+                }}
+              >
                 {currentUser?.email}
               </div>
             </div>
 
             {/* Full Name */}
             <div>
-              <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1.5">
-                <User className="w-3.5 h-3.5 text-blue-500" />
+              <label className="block font-bold mb-1 flex items-center gap-1.5" style={{ color: 'var(--text-primary)' }}>
+                <User className="w-3.5 h-3.5 text-section-icon" />
                 <span>Full Name</span>
               </label>
               <input
@@ -182,7 +202,12 @@ export default function AuthModal({ currentUser, onSaveProfile, onClose, onSignO
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="e.g. Divanshu Sharma"
-                className="glass-input w-full rounded-xl p-2.5 text-xs placeholder-slate-400 focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded-xl p-2.5 text-xs placeholder-slate-400 border focus:outline-none"
+                style={{
+                  backgroundColor: 'var(--bg-body)',
+                  borderColor: 'var(--border-card)',
+                  color: 'var(--text-primary)'
+                }}
                 required
               />
             </div>
@@ -190,11 +215,11 @@ export default function AuthModal({ currentUser, onSaveProfile, onClose, onSignO
             {/* WhatsApp Phone Number */}
             <div>
               <div className="flex items-center justify-between mb-1">
-                <label className="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-                  <Phone className="w-3.5 h-3.5 text-emerald-500" />
+                <label className="font-bold flex items-center gap-1.5" style={{ color: 'var(--text-primary)' }}>
+                  <Phone className="w-3.5 h-3.5 text-section-icon" />
                   <span>WhatsApp Number</span>
                 </label>
-                <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded">
+                <span className="badge-stock text-[10px] font-semibold px-1.5 py-0.5 rounded">
                   Direct Student Chat
                 </span>
               </div>
@@ -203,10 +228,15 @@ export default function AuthModal({ currentUser, onSaveProfile, onClose, onSignO
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="e.g. +91 9876543210 or 9876543210"
-                className="glass-input w-full rounded-xl p-2.5 text-xs font-mono placeholder-slate-400 focus:ring-2 focus:ring-emerald-500"
+                className="w-full rounded-xl p-2.5 text-xs font-mono placeholder-slate-400 border focus:outline-none"
+                style={{
+                  backgroundColor: 'var(--bg-body)',
+                  borderColor: 'var(--border-card)',
+                  color: 'var(--text-primary)'
+                }}
                 required
               />
-              <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1">
+              <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)' }}>
                 Used to pre-fill direct WhatsApp chat links with interested buyers
               </p>
             </div>
@@ -247,7 +277,8 @@ export default function AuthModal({ currentUser, onSaveProfile, onClose, onSignO
                     signOutUser();
                   }
                 }}
-                className="w-full py-2 text-rose-500 hover:text-rose-600 dark:hover:text-rose-400 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer mt-1"
+                className="w-full py-2 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer mt-1"
+                style={{ color: 'var(--text-price-sale)' }}
               >
                 <LogOut className="w-3.5 h-3.5" />
                 <span>Log Out of this Account</span>
@@ -256,16 +287,20 @@ export default function AuthModal({ currentUser, onSaveProfile, onClose, onSignO
 
           </form>
         ) : (
-          /* ========================================================================= */
-          /* CASE 2: LOGGED OUT USER (GOOGLE OAUTH ONLY)                               */
-          /* ========================================================================= */
+          /* CASE 2: LOGGED OUT USER */
           <div className="space-y-4">
-            <div className="p-3.5 rounded-2xl bg-blue-500/10 dark:bg-blue-500/15 border border-blue-500/20 text-xs">
-              <div className="font-bold text-blue-700 dark:text-blue-300 flex items-center gap-1.5 mb-1">
-                <ShieldCheck className="w-4 h-4 text-blue-500" />
+            <div
+              className="p-3.5 rounded-2xl border text-xs"
+              style={{
+                backgroundColor: 'var(--bg-body)',
+                borderColor: 'var(--border-card)'
+              }}
+            >
+              <div className="font-bold flex items-center gap-1.5 mb-1 heading-section">
+                <ShieldCheck className="w-4 h-4 text-section-icon" />
                 <span>Campus Exclusivity</span>
               </div>
-              <p className="text-[11px] text-blue-600/90 dark:text-blue-300/90 leading-relaxed">
+              <p className="text-[11px] leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
                 Sign in with your official <strong>@iisermohali.ac.in</strong> Google account. Passwords are no longer required.
               </p>
             </div>
@@ -275,10 +310,10 @@ export default function AuthModal({ currentUser, onSaveProfile, onClose, onSignO
               target={googleOAuthUrl ? '_top' : undefined}
               rel="noopener noreferrer"
               onClick={handleGoogleSignIn}
-              className="w-full flex items-center justify-center gap-3 py-3.5 px-4 rounded-2xl bg-white dark:bg-slate-800 text-slate-800 dark:text-white font-bold text-xs sm:text-sm border border-slate-200/90 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-slate-700/80 transition-all shadow-md active:scale-98 cursor-pointer select-none no-underline group"
+              className="btn-primary w-full flex items-center justify-center gap-3 py-3.5 px-4 rounded-2xl font-bold text-xs sm:text-sm shadow-md active:scale-98 cursor-pointer select-none no-underline group"
             >
               {isAuthLoading ? (
-                <Loader2 className="w-4 h-4 animate-spin text-blue-500" />
+                <Loader2 className="w-4 h-4 animate-spin text-current" />
               ) : (
                 <svg className="w-4 h-4 shrink-0 transition-transform group-hover:scale-105" viewBox="0 0 24 24">
                   <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -290,7 +325,7 @@ export default function AuthModal({ currentUser, onSaveProfile, onClose, onSignO
               <span>{isAuthLoading ? 'Connecting to Google...' : 'Sign in with Google OAuth'}</span>
             </a>
 
-            <p className="text-[10px] text-center text-slate-400 dark:text-slate-500 mt-2">
+            <p className="text-[10px] text-center mt-2" style={{ color: 'var(--text-secondary)' }}>
               First-time sign-ins will prompt for your name and WhatsApp number once to keep saved in Supabase.
             </p>
           </div>

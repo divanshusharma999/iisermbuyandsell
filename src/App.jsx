@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Header from './components/Header';
+import HeroSection from './components/HeroSection';
 import FilterBar from './components/FilterBar';
 import ProductGrid from './components/ProductGrid';
 import ProductDetailModal from './components/ProductDetailModal';
@@ -12,7 +13,7 @@ import ToastNotification from './components/ToastNotification';
 import { ProductSkeletonLoader, PageTransitionLoader } from './components/SkeletonLoader';
 import NotFound from './components/NotFound';
 import OfflineBanner from './components/OfflineBanner';
-import { INITIAL_LISTINGS, INITIAL_BANNED_KEYWORDS } from './data/mockData';
+import { INITIAL_LISTINGS, INITIAL_BANNED_KEYWORDS, DEFAULT_ADMIN_SUPPORT_WHATSAPP } from './data/mockData';
 import { ShieldAlert, Heart } from 'lucide-react';
 import InfoTooltip from './components/InfoTooltip';
 import {
@@ -37,13 +38,15 @@ export default function App() {
     return saved !== null ? JSON.parse(saved) : false; // Default: Light/White mode
   });
 
-  // Apply/remove 'dark' class on <html> whenever darkMode changes
+  // Apply/remove 'dark' class and data-theme on <html> whenever darkMode changes
   useEffect(() => {
     const root = document.documentElement;
     if (darkMode) {
       root.classList.add('dark');
+      root.setAttribute('data-theme', 'dark');
     } else {
       root.classList.remove('dark');
+      root.setAttribute('data-theme', 'light');
     }
     localStorage.setItem('kollecto_darkmode', JSON.stringify(darkMode));
   }, [darkMode]);
@@ -329,7 +332,13 @@ export default function App() {
   const userListings = listings.filter(item => item.sellerEmail?.toLowerCase() === currentUser?.email?.toLowerCase());
 
   return (
-    <div className="min-h-screen w-full max-w-full overflow-x-hidden bg-canvas text-canvas-primary flex flex-col transition-colors duration-300" style={{backgroundColor:'var(--canvas-bg)',color:'var(--text-primary)'}}>
+    <div
+      className="min-h-screen w-full max-w-full overflow-x-hidden flex flex-col transition-colors duration-300"
+      style={{
+        backgroundColor: 'var(--bg-body)',
+        color: 'var(--text-primary)'
+      }}
+    >
       
       {/* Network Status Banner */}
       <OfflineBanner />
@@ -377,9 +386,21 @@ export default function App() {
               const updated = { ...profile, needsOnboarding: false };
               setCurrentUser(updated);
               localStorage.setItem('iiserm_current_user', JSON.stringify(updated));
-              if (!users.some(u => u.email?.toLowerCase() === profile.email?.toLowerCase())) {
-                setUsers(prev => [{ ...profile, isSuspended: false }, ...prev]);
-              }
+              setUsers(prev => {
+                const exists = prev.some(u => u.email?.toLowerCase() === profile.email?.toLowerCase());
+                if (!exists) {
+                  return [{ ...profile, isSuspended: false }, ...prev];
+                }
+                return prev.map(u => u.email?.toLowerCase() === profile.email?.toLowerCase()
+                  ? { ...u, name: profile.name, whatsapp: profile.whatsapp }
+                  : u
+                );
+              });
+              setListings(prev => prev.map(item => 
+                item.sellerEmail?.toLowerCase() === profile.email?.toLowerCase()
+                  ? { ...item, sellerWhatsapp: profile.whatsapp, sellerName: profile.name }
+                  : item
+              ));
               showToast(`Welcome to KollectoP2P, ${profile.name || profile.email}!`);
               setShowAuthModal(false);
             }}
@@ -392,6 +413,13 @@ export default function App() {
             {/* BUYER FEED VIEW */}
             {activeTab === 'feed' && (
               <>
+                <HeroSection
+                  onOpenUpload={handleOpenUpload}
+                  onExploreClearouts={() => {
+                    setSelectedCategory('All');
+                    setSearchQuery('Room Clear-out');
+                  }}
+                />
                 <FilterBar
                   searchQuery={searchQuery}
                   setSearchQuery={setSearchQuery}
@@ -466,26 +494,100 @@ export default function App() {
 
       </main>
 
-      {/* Footer */}
-      <footer className="glass-header border-t border-b-0 py-6 mt-auto transition-colors duration-300">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500 dark:text-slate-400">
-          <div className="flex flex-wrap items-center gap-2">
-            <img src="/logo.jpg" alt="KollectoP2P" className="w-5 h-5 rounded-md" />
-            <span className="font-bold text-slate-700 dark:text-slate-300">KollectoP2P</span>
-            <span className="text-slate-300 dark:text-slate-600">•</span>
-            <span>© 2026 IISER Mohali Campus Marketplace</span>
-            <span className="text-slate-300 dark:text-slate-600">•</span>
-            <span className="glass-badge px-2 py-0.5 rounded-full text-[10px] font-mono font-bold text-slate-800 dark:text-slate-200">@iisermohali.ac.in verified</span>
-            <InfoTooltip text="Zero-friction campus bulletin board routing off-platform to WhatsApp." position="top" />
+      {/* ─── 5. FOOTER CONFORMING TO THEME REQUIREMENTS ───────────────────── */}
+      {/* Requirement: Base background: --bg-footer with text using --text-on-dark. Links should hover to --text-nav-hover */}
+      <footer
+        className="w-full border-t py-8 mt-auto transition-colors duration-300"
+        style={{
+          backgroundColor: 'var(--bg-footer)',
+          borderColor: 'var(--border-card)',
+          color: 'var(--text-on-dark)'
+        }}
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4 pb-6 border-b border-white/10">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-xl overflow-hidden border border-white/20 shadow-sm shrink-0">
+                <img src="/logo.jpg" alt="KollectoP2P" className="w-full h-full object-cover" />
+              </div>
+              <div>
+                <span className="font-extrabold text-base tracking-tight" style={{ color: 'var(--text-on-dark)' }}>
+                  Kollecto<span style={{ color: 'var(--text-accent-hero)' }}>P2P</span>
+                </span>
+                <p className="text-xs text-white/70">
+                  IISER Mohali Campus-Exclusive Peer-to-Peer Marketplace
+                </p>
+              </div>
+            </div>
+
+            {/* Quick Links with hover to --text-nav-hover */}
+            <div className="flex flex-wrap items-center gap-4 text-xs font-semibold">
+              <button
+                onClick={() => handleTabChange('feed')}
+                className="transition-colors cursor-pointer"
+                style={{ color: 'var(--text-on-dark)' }}
+                onMouseEnter={(e) => e.currentTarget.style.color = 'var(--text-nav-hover)'}
+                onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-on-dark)'}
+              >
+                Marketplace Feed
+              </button>
+              <span className="text-white/30">•</span>
+              <button
+                onClick={handleOpenUpload}
+                className="transition-colors cursor-pointer"
+                style={{ color: 'var(--text-on-dark)' }}
+                onMouseEnter={(e) => e.currentTarget.style.color = 'var(--text-nav-hover)'}
+                onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-on-dark)'}
+              >
+                Upload Item
+              </button>
+              <span className="text-white/30">•</span>
+              <a
+                href={`https://wa.me/${DEFAULT_ADMIN_SUPPORT_WHATSAPP.replace(/[^0-9]/g, '')}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="transition-colors cursor-pointer"
+                style={{ color: 'var(--text-on-dark)' }}
+                onMouseEnter={(e) => e.currentTarget.style.color = 'var(--text-nav-hover)'}
+                onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-on-dark)'}
+              >
+                Admin Support WhatsApp
+              </a>
+            </div>
           </div>
 
-          <div className="flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400">
-            <span>Created with</span>
-            <Heart className="w-3.5 h-3.5 text-rose-500 fill-rose-500 inline-block" />
-            <span>by</span>
-            <span className="font-semibold text-slate-700 dark:text-slate-200">Divanshu MS25237</span>
-            <span>and</span>
-            <span className="font-semibold text-slate-700 dark:text-slate-200">Ram Ratan Sankhla MS25231</span>
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-xs" style={{ color: 'var(--text-on-dark)' }}>
+            <div className="flex flex-wrap items-center gap-2">
+              <span>© 2026 IISER Mohali Campus Marketplace</span>
+              <span className="text-white/30">•</span>
+              <span
+                className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold border border-white/20"
+                style={{ backgroundColor: 'rgba(0, 0, 0, 0.3)', color: 'var(--text-accent-hero)' }}
+              >
+                @iisermohali.ac.in verified
+              </span>
+            </div>
+
+            <div className="flex items-center gap-1.5 text-[11px]">
+              <span>Created with</span>
+              <Heart className="w-3.5 h-3.5 text-rose-500 fill-rose-500 inline-block" />
+              <span>by</span>
+              <span
+                className="font-semibold underline decoration-dotted transition-colors cursor-default"
+                onMouseEnter={(e) => e.currentTarget.style.color = 'var(--text-nav-hover)'}
+                onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-on-dark)'}
+              >
+                Divanshu MS25237
+              </span>
+              <span>&</span>
+              <span
+                className="font-semibold underline decoration-dotted transition-colors cursor-default"
+                onMouseEnter={(e) => e.currentTarget.style.color = 'var(--text-nav-hover)'}
+                onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-on-dark)'}
+              >
+                Ram Ratan Sankhla MS25231
+              </span>
+            </div>
           </div>
         </div>
       </footer>
@@ -518,9 +620,21 @@ export default function App() {
             const updated = { ...profile, needsOnboarding: false };
             setCurrentUser(updated);
             localStorage.setItem('iiserm_current_user', JSON.stringify(updated));
-            if (!users.some(u => u.email?.toLowerCase() === profile.email?.toLowerCase())) {
-              setUsers(prev => [{ ...profile, isSuspended: false }, ...prev]);
-            }
+            setUsers(prev => {
+              const exists = prev.some(u => u.email?.toLowerCase() === profile.email?.toLowerCase());
+              if (!exists) {
+                return [{ ...profile, isSuspended: false }, ...prev];
+              }
+              return prev.map(u => u.email?.toLowerCase() === profile.email?.toLowerCase()
+                ? { ...u, name: profile.name, whatsapp: profile.whatsapp }
+                : u
+              );
+            });
+            setListings(prev => prev.map(item => 
+              item.sellerEmail?.toLowerCase() === profile.email?.toLowerCase()
+                ? { ...item, sellerWhatsapp: profile.whatsapp, sellerName: profile.name }
+                : item
+            ));
             showToast('Profile updated!');
             setShowAuthModal(false);
           }}

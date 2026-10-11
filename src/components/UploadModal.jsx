@@ -172,19 +172,35 @@ export default function UploadModal({ onClose, onSubmit, currentUser, bannedKeyw
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/40 dark:bg-slate-950/70 backdrop-blur-xl flex items-center justify-center p-3 sm:p-6 animate-in fade-in">
-      <div className="glass-modal rounded-3xl max-w-2xl w-full overflow-hidden shadow-2xl relative flex flex-col max-h-[92vh]">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 animate-in fade-in">
+      <div
+        className="rounded-3xl max-w-2xl w-full overflow-hidden shadow-2xl relative flex flex-col max-h-[92vh] border"
+        style={{
+          backgroundColor: 'var(--bg-surface)',
+          borderColor: 'var(--border-card)'
+        }}
+      >
         
         {/* Header Bar */}
-        <div className="p-4 sm:p-5 border-b border-slate-200/50 dark:border-white/10 flex items-center justify-between backdrop-blur-md sticky top-0 z-10">
+        <div
+          className="p-4 sm:p-5 border-b flex items-center justify-between sticky top-0 z-10"
+          style={{
+            backgroundColor: 'var(--bg-nav)',
+            borderColor: 'var(--border-card)',
+            color: 'var(--text-on-dark)'
+          }}
+        >
           <div>
-            <h3 className="font-extrabold text-lg text-slate-900 dark:text-white flex items-center gap-1.5">
+            <h3 className="font-extrabold text-lg flex items-center gap-1.5" style={{ color: 'var(--text-on-dark)' }}>
               <span>Post KollectoP2P Listing</span>
               <InfoTooltip text="Single-page upload flow with image hosting." position="bottom" />
             </h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400">Locked to @iisermohali.ac.in verified student network</p>
+            <p className="text-xs text-white/70">Locked to @iisermohali.ac.in verified student network</p>
           </div>
-          <button onClick={onClose} className="p-2 rounded-xl text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800">
+          <button
+            onClick={onClose}
+            className="p-2 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+          >
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -242,8 +258,8 @@ export default function UploadModal({ onClose, onSubmit, currentUser, bannedKeyw
             {/* File Upload Dropzone */}
             {images.length < 5 && (
               <div className="space-y-3 pt-2">
-                <label className="flex flex-col items-center justify-center p-4 border-2 border-dashed rounded-2xl glass-card cursor-pointer transition-colors text-center" style={{borderColor:'var(--apple-blue)', opacity: 0.85}}>
-                  <div className="flex items-center gap-2 font-extrabold text-xs" style={{color:'var(--apple-blue)'}}>
+                <label className="flex flex-col items-center justify-center p-4 border-2 border-dashed rounded-2xl cursor-pointer transition-colors text-center" style={{borderColor:'var(--btn-primary-bg)', backgroundColor:'var(--bg-body)'}}>
+                  <div className="flex items-center gap-2 font-extrabold text-xs" style={{color:'var(--btn-primary-bg)'}}>
                     {isUploading ? (
                       <Loader2 className="w-5 h-5 animate-spin" />
                     ) : (

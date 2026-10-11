@@ -1,82 +1,102 @@
 @import "tailwindcss";
 
-/* ─── Apple UI Design System — CSS Token Layer ──────────────── */
+/* ─── KollectoP2P Complete Marketplace Theme Token System ────── */
 
 :root {
-  /* Canvas */
-  --canvas-bg: #F5F5F7;
-  --canvas-bg-alt: #FFFFFF;
+  /* Canvas & Surfaces */
+  --bg-body: #FFFFFF;
+  --bg-surface: #FFFFF9;
+  --bg-nav: #254E58;
+  --bg-footer: #20232E;
+  --border-card: #006769;
 
   /* Typography */
-  --text-primary: #1D1D1F;
-  --text-secondary: #6E6E73;
-  --text-tertiary: #98989D;
+  --text-primary: #000000;
+  --text-secondary: #4F4A41;
+  --text-on-dark: #FFFFF9;
+  --text-nav-link: #E6DD29;
+  --text-nav-hover: #DFD010;
+  --text-accent-hero: #FFEA00;
+  --text-section-icon: #591509;
+  --text-price-sale: #591509;
 
-  /* Glass surfaces */
-  --glass-bg: rgba(255, 255, 255, 0.65);
-  --glass-bg-strong: rgba(255, 255, 255, 0.85);
-  --glass-bg-subtle: rgba(255, 255, 255, 0.45);
-  --glass-border: rgba(0, 0, 0, 0.05);
-  --glass-border-strong: rgba(0, 0, 0, 0.1);
-  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
-  --glass-shadow-lg: 0 25px 50px rgba(0, 0, 0, 0.12);
+  /* Action Buttons */
+  --btn-primary-bg: #254E58;
+  --btn-primary-text: #EAE7DC;
+  --btn-primary-hover-bg: #4F4A41;
+  --btn-primary-hover-text: #FFEA00;
 
-  /* Apple Action Colors */
-  --apple-blue: #0071E3;
-  --apple-blue-hover: #0077ED;
-  --apple-success: #28CD41;
-  --apple-warning: #FF9F0A;
-  --apple-danger: #FF3B30;
-  --apple-danger-hover: #E6352B;
+  /* Category & Status Badges */
+  --badge-featured: #E67E23;
+  --badge-deal: #F1C40F;
+  --badge-stock: #2DC26B;
+  --badge-b2b: #3598DB;
+  --badge-clearance: #CB6D51;
+  --badge-new: #BFEDD2;
+  --badge-new-text: #000000;
 
-  /* Card hover */
-  --card-hover-bg: rgba(255, 255, 255, 0.80);
-  --card-hover-border: rgba(0, 0, 0, 0.1);
-  --card-hover-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  /* Section Headings & Card Titles */
+  --heading-section: #254E58;
+  --heading-card-title: #254E58;
+
+  /* Legacy aliases for smooth compatibility */
+  --canvas-bg: var(--bg-body);
+  --canvas-bg-alt: var(--bg-surface);
+  --glass-border: var(--border-card);
 }
 
-.dark {
-  /* Canvas */
-  --canvas-bg: #000000;
-  --canvas-bg-alt: #111111;
+.dark, [data-theme="dark"] {
+  /* Canvas & Surfaces */
+  --bg-body: #12141A;
+  --bg-surface: #1E222B;
+  --bg-nav: #161920;
+  --bg-footer: #0D0F14;
+  --border-card: #2A353D;
 
   /* Typography */
-  --text-primary: #F5F5F7;
-  --text-secondary: #86868B;
-  --text-tertiary: #6E6E73;
+  --text-primary: #F0F4F8;
+  --text-secondary: #A0AAB2;
+  --text-on-dark: #FFFFFF;
+  --text-nav-link: #E7DF55;
+  --text-nav-hover: #FFE843;
+  --text-accent-hero: #FFE843;
+  --text-section-icon: #E57373;
+  --text-price-sale: #FF6B6B;
 
-  /* Glass surfaces */
-  --glass-bg: rgba(28, 28, 30, 0.60);
-  --glass-bg-strong: rgba(28, 28, 30, 0.85);
-  --glass-bg-subtle: rgba(28, 28, 30, 0.40);
-  --glass-border: rgba(255, 255, 255, 0.10);
-  --glass-border-strong: rgba(255, 255, 255, 0.18);
-  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
-  --glass-shadow-lg: 0 25px 50px rgba(0, 0, 0, 0.65);
+  /* Action Buttons */
+  --btn-primary-bg: #487D8A;
+  --btn-primary-text: #FFFFFF;
+  --btn-primary-hover-bg: #FFE843;
+  --btn-primary-hover-text: #12141A;
 
-  /* Apple Action Colors — dark variants */
-  --apple-blue: #0A84FF;
-  --apple-blue-hover: #409CFF;
-  --apple-success: #30D158;
-  --apple-warning: #FFD60A;
-  --apple-danger: #FF453A;
-  --apple-danger-hover: #FF6961;
+  /* Category & Status Badges */
+  --badge-featured: #E67E23;
+  --badge-deal: #F1C40F;
+  --badge-stock: #2DC26B;
+  --badge-b2b: #3598DB;
+  --badge-clearance: #CB6D51;
+  --badge-new: #234B3B;
+  --badge-new-text: #BFEDD2;
 
-  /* Card hover */
-  --card-hover-bg: rgba(58, 58, 60, 0.80);
-  --card-hover-border: rgba(255, 255, 255, 0.20);
-  --card-hover-shadow: 0 20px 40px rgba(0, 0, 0, 0.55);
+  /* Section Headings & Card Titles */
+  --heading-section: #F0F4F8;
+  --heading-card-title: #F0F4F8;
+
+  /* Legacy aliases */
+  --canvas-bg: var(--bg-body);
+  --canvas-bg-alt: var(--bg-surface);
+  --glass-border: var(--border-card);
 }
 
 /* ─── Base Layer ─────────────────────────────────────────────── */
 
 @layer base {
   html {
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
-      "Helvetica Neue", "Arial", sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Plus Jakarta Sans",
+      "Segoe UI", Roboto, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    background-color: var(--canvas-bg);
+    background-color: var(--bg-body);
     color: var(--text-primary);
     transition: background-color 0.3s ease, color 0.3s ease;
     overflow-x: hidden;
@@ -84,10 +104,10 @@
   }
 
   body {
-    background-color: var(--canvas-bg);
+    background-color: var(--bg-body);
     color: var(--text-primary);
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
-      "Helvetica Neue", "Arial", sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Plus Jakarta Sans",
+      "Segoe UI", Roboto, sans-serif;
     overflow-x: hidden;
     max-width: 100vw;
     width: 100%;
@@ -97,16 +117,19 @@
     overflow-x: hidden;
     max-width: 100vw;
     width: 100%;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--bg-body);
+    color: var(--text-primary);
   }
 
-  /* Custom Branded Focus Ring */
   *:focus-visible {
-    outline: 2px solid var(--apple-blue) !important;
+    outline: 2px solid var(--text-accent-hero) !important;
     outline-offset: 2px !important;
     border-radius: 8px;
   }
 
-  /* Minimal Transparent Scrollbar */
   ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
@@ -115,148 +138,175 @@
     background: transparent;
   }
   ::-webkit-scrollbar-thumb {
-    background: rgba(140, 140, 145, 0.35);
+    background: rgba(79, 74, 65, 0.35);
     border-radius: 999px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: rgba(140, 140, 145, 0.6);
+    background: rgba(79, 74, 65, 0.6);
   }
 }
 
-/* ─── Glassmorphism Component System ─────────────────────────── */
+/* ─── Semantic Components & Utility Classes ──────────────────── */
 
-/* Header / Footer Bar */
-.glass-header {
-  background: var(--glass-bg-strong);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border-bottom: 1px solid var(--glass-border);
-}
-
-/* Generic Cards */
-.glass-card {
-  background: var(--glass-bg);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid var(--glass-border);
-  box-shadow: var(--glass-shadow);
-}
-
-/* Card with hover lift */
-.glass-card-hover {
-  transition: background 0.3s cubic-bezier(0.25, 0.1, 0.25, 1.0),
-              border-color 0.3s cubic-bezier(0.25, 0.1, 0.25, 1.0),
-              box-shadow 0.3s cubic-bezier(0.25, 0.1, 0.25, 1.0),
-              transform 0.3s cubic-bezier(0.25, 0.1, 0.25, 1.0);
-}
-.glass-card-hover:hover {
-  background: var(--card-hover-bg);
-  border-color: var(--card-hover-border);
-  box-shadow: var(--card-hover-shadow);
-  transform: translateY(-3px);
-}
-
-/* Modals / Panels */
-.glass-modal {
-  background: var(--glass-bg-strong);
-  backdrop-filter: blur(24px) saturate(190%);
-  -webkit-backdrop-filter: blur(24px) saturate(190%);
-  border: 1px solid var(--glass-border-strong);
-  box-shadow: var(--glass-shadow-lg);
-}
-
-/* Inputs */
-.glass-input {
-  background: var(--glass-bg-subtle);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid var(--glass-border-strong);
-  color: var(--text-primary);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-.glass-input:focus {
-  border-color: var(--apple-blue);
-  box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.18);
-  outline: none;
-}
-.dark .glass-input:focus {
-  box-shadow: 0 0 0 3px rgba(10, 132, 255, 0.22);
-}
-
-/* Pill Badges */
-.glass-badge {
-  background: var(--glass-bg-subtle);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  border: 1px solid var(--glass-border);
-}
-
-/* ─── Apple Blue Primary Button ──────────────────────────────── */
+/* Primary CTA Button (Wires up all 4 states) */
 .btn-primary {
-  background: var(--apple-blue);
-  color: #FFFFFF;
-  border: none;
-  border-radius: 980px;
+  background-color: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
+  border: 1px solid transparent;
+  border-radius: 0.85rem;
   font-weight: 700;
   letter-spacing: -0.01em;
-  transition: background 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
-  box-shadow: 0 2px 12px rgba(0, 113, 227, 0.35);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
-.btn-primary:hover {
-  background: var(--apple-blue-hover);
-  box-shadow: 0 4px 18px rgba(0, 113, 227, 0.45);
+.btn-primary:hover,
+.btn-primary:focus-visible {
+  background-color: var(--btn-primary-hover-bg) !important;
+  color: var(--btn-primary-hover-text) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  outline: none;
 }
 .btn-primary:active {
   transform: scale(0.97);
 }
-.dark .btn-primary {
-  box-shadow: 0 2px 12px rgba(10, 132, 255, 0.4);
-}
-.dark .btn-primary:hover {
-  box-shadow: 0 4px 18px rgba(10, 132, 255, 0.5);
-}
 
-/* Danger / Destructive Button */
-.btn-danger {
-  background: var(--apple-danger);
-  color: #FFFFFF;
-  border: none;
-  border-radius: 980px;
+/* Secondary Button */
+.btn-secondary {
+  background-color: var(--bg-surface);
+  color: var(--text-primary);
+  border: 1px solid var(--border-card);
+  border-radius: 0.85rem;
   font-weight: 700;
-  transition: background 0.2s ease, transform 0.15s ease;
+  transition: all 0.2s ease;
+  cursor: pointer;
 }
-.btn-danger:hover {
-  background: var(--apple-danger-hover);
-}
-.btn-danger:active {
-  transform: scale(0.97);
+.btn-secondary:hover {
+  background-color: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
+  border-color: var(--btn-primary-bg);
 }
 
-/* Success / Confirm Button */
-.btn-success {
-  background: var(--apple-success);
-  color: #FFFFFF;
-  border: none;
-  border-radius: 980px;
+/* Product Card */
+.card-product {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-card);
+  border-radius: 1.5rem;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.card-product:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 28px -6px rgba(0, 0, 0, 0.18);
+  border-color: var(--btn-primary-bg);
+}
+
+/* Nav Link */
+.nav-link {
+  color: var(--text-nav-link);
+  transition: color 0.18s ease;
   font-weight: 700;
-  transition: background 0.2s ease, transform 0.15s ease;
 }
-.btn-success:active {
-  transform: scale(0.97);
+.nav-link:hover {
+  color: var(--text-nav-hover);
 }
 
-/* ─── Typography Utility Classes ─────────────────────────────── */
-.text-canvas-primary   { color: var(--text-primary); }
-.text-canvas-secondary { color: var(--text-secondary); }
-.text-canvas-tertiary  { color: var(--text-tertiary); }
-.bg-canvas             { background-color: var(--canvas-bg); }
-.bg-canvas-alt         { background-color: var(--canvas-bg-alt); }
+/* Section Headings */
+.heading-section {
+  color: var(--heading-section);
+}
+.heading-card-title {
+  color: var(--heading-card-title);
+}
 
-/* ─── Scrollbar Hiding ───────────────────────────────────────── */
-.no-scrollbar::-webkit-scrollbar { display: none; }
-.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+/* Section Icon */
+.text-section-icon {
+  color: var(--text-section-icon);
+}
 
-/* ─── Masonry Grid ───────────────────────────────────────────── */
+/* Price Classes */
+.price-regular {
+  color: var(--text-primary);
+}
+.price-sale {
+  color: var(--text-price-sale);
+}
+
+/* Badge System */
+.badge-featured {
+  background-color: var(--badge-featured);
+  color: #FFFFFF;
+}
+.badge-deal {
+  background-color: var(--badge-deal);
+  color: #000000;
+}
+.badge-stock {
+  background-color: var(--badge-stock);
+  color: #FFFFFF;
+}
+.badge-b2b {
+  background-color: var(--badge-b2b);
+  color: #FFFFFF;
+}
+.badge-clearance {
+  background-color: var(--badge-clearance);
+  color: #FFFFFF;
+}
+.badge-new {
+  background-color: var(--badge-new);
+  color: var(--badge-new-text);
+}
+
+/* Input Fields */
+.input-theme {
+  background-color: var(--bg-surface);
+  color: var(--text-primary);
+  border: 1px solid var(--border-card);
+  border-radius: 1rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.input-theme:focus {
+  border-color: var(--btn-primary-bg);
+  box-shadow: 0 0 0 3px rgba(37, 78, 88, 0.2);
+  outline: none;
+}
+.dark .input-theme:focus {
+  box-shadow: 0 0 0 3px rgba(72, 125, 138, 0.3);
+}
+
+/* Glass Compatibility Layer */
+.glass-header {
+  background-color: var(--bg-nav);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+.glass-card {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-card);
+}
+.glass-modal {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-card);
+}
+.glass-input {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-card);
+  color: var(--text-primary);
+}
+.glass-input:focus {
+  border-color: var(--btn-primary-bg);
+  box-shadow: 0 0 0 3px rgba(37, 78, 88, 0.2);
+  outline: none;
+}
+.glass-badge {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-card);
+  color: var(--text-secondary);
+}
+
+/* Masonry Grid */
 .masonry-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -264,17 +314,18 @@
 }
 @media (min-width: 640px) {
   .masonry-grid {
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
   }
 }
 
-/* ─── Tooltip ────────────────────────────────────────────────── */
+/* Scrollbar Hiding */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Tooltip Popover */
 .tooltip-popover {
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 0 0 1px var(--glass-border);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 0 0 1px var(--border-card);
   animation: fadeIn 0.15s ease-out;
-}
-.dark .tooltip-popover {
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 0 0 1px var(--glass-border);
 }
 
 @keyframes fadeIn {

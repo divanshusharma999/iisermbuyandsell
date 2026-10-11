@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
   X, ChevronLeft, ChevronRight, MessageCircle, ExternalLink, Flag, Share2,
-  CheckCircle2, Clock, Layers, ShieldAlert, Copy, Sparkles, Building2, PhoneCall
+  CheckCircle2, Clock, Layers, ShieldAlert, Copy, Sparkles, Building2, PhoneCall, Tag
 } from 'lucide-react';
 import { DEFAULT_ADMIN_SUPPORT_WHATSAPP } from '../data/mockData';
 import InfoTooltip from './InfoTooltip';
@@ -80,58 +80,77 @@ export default function ProductDetailModal({ item, onClose, onReportItem, curren
     : ['https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?auto=format&fit=crop&w=800&q=80'];
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/40 dark:bg-slate-950/70 backdrop-blur-xl flex items-center justify-center p-3 sm:p-6 animate-in fade-in">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 animate-in fade-in">
       
       {/* Toast Alert Popup */}
       {toastMessage && (
-        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 glass-modal text-slate-900 dark:text-white font-extrabold text-xs sm:text-sm px-4 py-2.5 rounded-2xl shadow-2xl flex items-center gap-2 animate-bounce">
-          <Sparkles className="w-4 h-4 text-slate-400" />
+        <div
+          className="fixed top-6 left-1/2 -translate-x-1/2 z-50 font-extrabold text-xs sm:text-sm px-4 py-2.5 rounded-2xl shadow-2xl flex items-center gap-2 border animate-bounce"
+          style={{
+            backgroundColor: 'var(--bg-surface)',
+            borderColor: 'var(--border-card)',
+            color: 'var(--text-primary)'
+          }}
+        >
+          <Sparkles className="w-4 h-4 text-section-icon" />
           <span>{toastMessage}</span>
         </div>
       )}
 
       {/* Main Modal Card Container */}
-      <div className="glass-modal rounded-3xl max-w-3xl w-full overflow-hidden shadow-2xl relative flex flex-col max-h-[90vh]">
+      <div
+        className="rounded-3xl max-w-3xl w-full overflow-hidden shadow-2xl relative flex flex-col max-h-[90vh] border"
+        style={{
+          backgroundColor: 'var(--bg-surface)',
+          borderColor: 'var(--border-card)'
+        }}
+      >
         
         {/* Modal Header Bar */}
-        <div className="p-4 sm:p-5 border-b border-slate-200/50 dark:border-white/10 flex items-center justify-between backdrop-blur-md sticky top-0 z-10">
+        <div
+          className="p-4 sm:p-5 border-b flex items-center justify-between sticky top-0 z-10"
+          style={{
+            backgroundColor: 'var(--bg-nav)',
+            borderColor: 'var(--border-card)',
+            color: 'var(--text-on-dark)'
+          }}
+        >
           <div className="flex items-center gap-2">
-            <span className="px-2.5 py-1 text-xs font-bold glass-badge text-slate-800 dark:text-slate-200 rounded-full flex items-center gap-1">
+            <span
+              className="px-2.5 py-1 text-xs font-bold rounded-full flex items-center gap-1 border border-white/20"
+              style={{
+                backgroundColor: 'rgba(0, 0, 0, 0.25)',
+                color: 'var(--text-accent-hero)'
+              }}
+            >
               <Building2 className="w-3.5 h-3.5" />
               IISER Mohali Verified
             </span>
-            <InfoTooltip text="Only authenticated @iisermohali.ac.in students can post verified listings." position="bottom" />
           </div>
 
           <div className="flex items-center gap-2">
             {/* Share Button */}
-            <div className="flex items-center">
-              <button
-                onClick={handleShare}
-                className="p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                title="Share Listing"
-              >
-                <Share2 className="w-4 h-4" />
-              </button>
-              <InfoTooltip text="Copy link to clipboard to share with batchmates or hostel WhatsApp groups." position="bottom" />
-            </div>
+            <button
+              onClick={handleShare}
+              className="p-2 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+              title="Share Listing"
+            >
+              <Share2 className="w-4 h-4" />
+            </button>
 
             {/* Flag / Report Button */}
-            <div className="flex items-center">
-              <button
-                onClick={() => setShowReportModal(true)}
-                className="p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors"
-                title="Report Listing"
-              >
-                <Flag className="w-4 h-4" />
-              </button>
-              <InfoTooltip text="Report spam, restricted items, or fake listings directly to Admin moderation." position="bottom" />
-            </div>
+            <button
+              onClick={() => setShowReportModal(true)}
+              className="p-2 rounded-xl text-white/80 hover:text-rose-400 hover:bg-white/10 transition-colors cursor-pointer"
+              title="Report Listing"
+            >
+              <Flag className="w-4 h-4" />
+            </button>
 
             {/* Close Modal Button */}
             <button
               onClick={onClose}
-              className="p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors ml-1"
+              className="p-2 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-colors cursor-pointer ml-1"
             >
               <X className="w-5 h-5" />
             </button>
@@ -139,10 +158,16 @@ export default function ProductDetailModal({ item, onClose, onReportItem, curren
         </div>
 
         {/* Modal Scrollable Content */}
-        <div className="p-4 sm:p-6 overflow-y-auto space-y-6 flex-1">
+        <div className="p-4 sm:p-6 overflow-y-auto space-y-6 flex-1" style={{ color: 'var(--text-primary)' }}>
           
           {/* Image Carousel */}
-          <div className="relative rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 group">
+          <div
+            className="relative rounded-2xl overflow-hidden border group"
+            style={{
+              backgroundColor: 'var(--bg-body)',
+              borderColor: 'var(--border-card)'
+            }}
+          >
             <div className="h-64 sm:h-80 w-full relative flex items-center justify-center">
               <img
                 src={images[activeImageIndex]}
@@ -154,13 +179,23 @@ export default function ProductDetailModal({ item, onClose, onReportItem, curren
                 <>
                   <button
                     onClick={() => setActiveImageIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1))}
-                    className="absolute left-3 p-2 rounded-full bg-white/90 dark:bg-slate-900/80 text-slate-800 dark:text-white hover:bg-slate-100 border border-slate-200 dark:border-slate-700 transition-all shadow-lg"
+                    className="absolute left-3 p-2 rounded-full border transition-all shadow-lg cursor-pointer"
+                    style={{
+                      backgroundColor: 'var(--bg-surface)',
+                      borderColor: 'var(--border-card)',
+                      color: 'var(--text-primary)'
+                    }}
                   >
                     <ChevronLeft className="w-5 h-5" />
                   </button>
                   <button
                     onClick={() => setActiveImageIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1))}
-                    className="absolute right-3 p-2 rounded-full bg-white/90 dark:bg-slate-900/80 text-slate-800 dark:text-white hover:bg-slate-100 border border-slate-200 dark:border-slate-700 transition-all shadow-lg"
+                    className="absolute right-3 p-2 rounded-full border transition-all shadow-lg cursor-pointer"
+                    style={{
+                      backgroundColor: 'var(--bg-surface)',
+                      borderColor: 'var(--border-card)',
+                      color: 'var(--text-primary)'
+                    }}
                   >
                     <ChevronRight className="w-5 h-5" />
                   </button>
@@ -170,14 +205,22 @@ export default function ProductDetailModal({ item, onClose, onReportItem, curren
 
             {/* Carousel Thumbnails */}
             {images.length > 1 && (
-              <div className="p-2 bg-slate-50 dark:bg-slate-950/90 border-t border-slate-200 dark:border-slate-800 flex gap-2 overflow-x-auto justify-center">
+              <div
+                className="p-2 border-t flex gap-2 overflow-x-auto justify-center"
+                style={{
+                  backgroundColor: 'var(--bg-surface)',
+                  borderColor: 'var(--border-card)'
+                }}
+              >
                 {images.map((img, idx) => (
                   <button
                     key={idx}
                     onClick={() => setActiveImageIndex(idx)}
-                    className={`w-14 h-14 rounded-lg overflow-hidden border-2 transition-all shrink-0 ${
-                      activeImageIndex === idx ? 'border-emerald-500 scale-105' : 'border-slate-300 dark:border-slate-800 opacity-60 hover:opacity-100'
-                    }`}
+                    className="w-14 h-14 rounded-lg overflow-hidden border-2 transition-all shrink-0 cursor-pointer"
+                    style={{
+                      borderColor: activeImageIndex === idx ? 'var(--btn-primary-bg)' : 'transparent',
+                      opacity: activeImageIndex === idx ? 1 : 0.6
+                    }}
                   >
                     <img src={img} alt={`Thumbnail ${idx}`} className="w-full h-full object-cover" />
                   </button>
@@ -189,63 +232,108 @@ export default function ProductDetailModal({ item, onClose, onReportItem, curren
           {/* Title & Core Details Header */}
           <div>
             <div className="flex flex-wrap items-center gap-2 mb-2">
-              <span className="px-2.5 py-1 text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-md border border-slate-200 dark:border-slate-700">
+              <span
+                className="px-2.5 py-1 text-xs font-bold rounded-md border flex items-center gap-1"
+                style={{
+                  backgroundColor: 'var(--bg-body)',
+                  borderColor: 'var(--border-card)',
+                  color: 'var(--text-primary)'
+                }}
+              >
+                <Tag className="w-3 h-3 text-section-icon" />
                 {item.category}
               </span>
-              <span className="px-2.5 py-1 text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-md border border-slate-200 dark:border-slate-700">
+
+              <span
+                className="px-2.5 py-1 text-xs font-bold rounded-md border"
+                style={{
+                  backgroundColor: 'var(--bg-body)',
+                  borderColor: 'var(--border-card)',
+                  color: 'var(--text-secondary)'
+                }}
+              >
                 Condition: {item.condition}
               </span>
+
               {item.isNegotiable ? (
-                <span className="px-2.5 py-1 text-xs font-bold bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 rounded-md">
+                <span className="badge-deal px-2.5 py-1 text-xs font-bold rounded-md shadow-sm">
                   Price Negotiable
                 </span>
               ) : (
-                <span className="px-2.5 py-1 text-xs font-bold bg-slate-100 dark:bg-slate-800/80 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700/80 rounded-md">
+                <span
+                  className="px-2.5 py-1 text-xs font-bold rounded-md border"
+                  style={{
+                    backgroundColor: 'var(--bg-body)',
+                    borderColor: 'var(--border-card)',
+                    color: 'var(--text-secondary)'
+                  }}
+                >
                   Fixed Price
                 </span>
               )}
+
+              {item.isCartSell && (
+                <span className="badge-featured px-2.5 py-1 text-xs font-bold rounded-md shadow-sm flex items-center gap-1">
+                  <Layers className="w-3.5 h-3.5" />
+                  Room Clear-Out Bundle
+                </span>
+              )}
+
               {item.reroutedToAdmin && (
-                <span className="px-2.5 py-1 text-xs font-extrabold bg-purple-100 dark:bg-purple-900/80 text-purple-700 dark:text-purple-200 border border-purple-300 dark:border-purple-500/50 rounded-md flex items-center gap-1">
-                  <PhoneCall className="w-3.5 h-3.5 text-purple-600 dark:text-purple-300" />
-                  Room Clear-Out Handoff (Admin Managed)
+                <span className="badge-b2b px-2.5 py-1 text-xs font-bold rounded-md shadow-sm flex items-center gap-1">
+                  <PhoneCall className="w-3.5 h-3.5" />
+                  Admin Support Handoff
                 </span>
               )}
             </div>
 
-            <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-snug">
+            {/* Title: --btn-primary-bg (light) / --text-primary (dark) */}
+            <h2 className="heading-card-title text-xl sm:text-2xl font-extrabold tracking-tight leading-snug">
               {item.title}
             </h2>
 
+            {/* Price display: regular prices use --text-primary; discounted/sale use --text-price-sale */}
             <div className="mt-3 flex items-baseline gap-2">
-              <span className="text-2xl sm:text-3xl font-black" style={{color:'var(--apple-blue)'}}>
+              <span className={`text-2xl sm:text-3xl font-black ${item.isNegotiable || item.isCartSell ? 'price-sale' : 'price-regular'}`}>
                 ₹{totalPrice.toLocaleString('en-IN')}
               </span>
               {item.isCartSell && (
-                <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                <span className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>
                   (Selected {selectedSubItems.length} of {item.subItems?.length || 0} sub-items)
                 </span>
               )}
-              <InfoTooltip text="Total estimated asking price. For cart sell bundles, selecting checkboxes adjusts the total." position="top" />
             </div>
           </div>
 
           {/* Item Description */}
-          <div className="bg-slate-50 dark:bg-slate-950/60 p-4 rounded-2xl border border-slate-200 dark:border-slate-800/80">
-            <h4 className="text-xs font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1 flex items-center justify-between">
+          <div
+            className="p-4 rounded-2xl border"
+            style={{
+              backgroundColor: 'var(--bg-body)',
+              borderColor: 'var(--border-card)'
+            }}
+          >
+            <h4 className="heading-section text-xs font-extrabold uppercase tracking-wider mb-1 flex items-center justify-between">
               <span>Item Description</span>
               <InfoTooltip text="Seller detailed description of condition, usage history, and hostel room location." position="left" />
             </h4>
-            <p className="text-sm text-slate-800 dark:text-slate-300 whitespace-pre-line leading-relaxed">
+            <p className="text-sm whitespace-pre-line leading-relaxed" style={{ color: 'var(--text-primary)' }}>
               {item.description}
             </p>
           </div>
 
           {/* E-Commerce Reference Links */}
           {item.referenceLinks && item.referenceLinks.length > 0 && (
-            <div className="bg-slate-50 dark:bg-slate-950/80 p-4 rounded-2xl border border-slate-200 dark:border-slate-800">
+            <div
+              className="p-4 rounded-2xl border"
+              style={{
+                backgroundColor: 'var(--bg-body)',
+                borderColor: 'var(--border-card)'
+              }}
+            >
               <div className="flex items-center justify-between mb-2">
-                <h4 className="text-xs font-extrabold uppercase tracking-wider flex items-center gap-1.5" style={{color:'var(--apple-blue)'}}>
-                  <ExternalLink className="w-3.5 h-3.5" />
+                <h4 className="heading-section text-xs font-extrabold uppercase tracking-wider flex items-center gap-1.5">
+                  <ExternalLink className="w-3.5 h-3.5 text-section-icon" />
                   <span>Retail Price Reference Links</span>
                 </h4>
               </div>
@@ -256,10 +344,15 @@ export default function ProductDetailModal({ item, onClose, onReportItem, curren
                     href={link.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center justify-between p-2.5 rounded-xl glass-card text-xs text-slate-800 dark:text-slate-200 transition-all group shadow-sm hover:text-[var(--apple-blue)]"
+                    className="flex items-center justify-between p-2.5 rounded-xl border text-xs font-bold transition-all shadow-sm group hover:underline"
+                    style={{
+                      backgroundColor: 'var(--bg-surface)',
+                      borderColor: 'var(--border-card)',
+                      color: 'var(--text-primary)'
+                    }}
                   >
-                    <span className="font-bold group-hover:underline truncate max-w-[80%]">{link.label || link.url}</span>
-                    <ExternalLink className="w-3.5 h-3.5 text-slate-400 group-hover:text-[var(--apple-blue)] shrink-0" />
+                    <span className="truncate max-w-[80%]">{link.label || link.url}</span>
+                    <ExternalLink className="w-3.5 h-3.5 text-section-icon shrink-0" />
                   </a>
                 ))}
               </div>
@@ -268,16 +361,23 @@ export default function ProductDetailModal({ item, onClose, onReportItem, curren
 
           {/* Cart / Bundle Sub-items Selector */}
           {item.isCartSell && item.subItems && item.subItems.length > 0 && (
-            <div className="glass-card p-4 rounded-2xl">
+            <div
+              className="p-4 rounded-2xl border"
+              style={{
+                backgroundColor: 'var(--bg-body)',
+                borderColor: 'var(--border-card)'
+              }}
+            >
               <div className="flex items-center justify-between mb-3">
                 <div>
-                  <h4 className="text-xs font-extrabold uppercase tracking-wider flex items-center gap-1.5" style={{color:'var(--apple-blue)'}}>
-                    <Layers className="w-4 h-4" style={{color:'var(--apple-blue)'}} />
+                  <h4 className="heading-section text-xs font-extrabold uppercase tracking-wider flex items-center gap-1.5">
+                    <Layers className="w-4 h-4 text-section-icon" />
                     <span>Select Bundle Sub-Items</span>
                   </h4>
-                  <p className="text-[11px] text-slate-600 dark:text-slate-400">Check the items you want to buy. WhatsApp message will automatically list your selection!</p>
+                  <p className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                    Check the items you want to buy. WhatsApp message will automatically list your selection!
+                  </p>
                 </div>
-                <InfoTooltip text="Checkboxes allow buying specific items from a room clearout bundle instead of the full cart." position="left" />
               </div>
 
               <div className="space-y-2">
@@ -286,25 +386,25 @@ export default function ProductDetailModal({ item, onClose, onReportItem, curren
                   return (
                     <label
                       key={sub.id}
-                      className={`flex items-center justify-between p-3 rounded-xl border transition-all cursor-pointer ${
-                        isChecked
-                          ? 'bg-white dark:bg-slate-900/90 shadow-md'
-                          : 'bg-slate-50 dark:bg-slate-950/60 border-slate-200 dark:border-slate-800 opacity-60 hover:opacity-100'
-                      }`}
-                      style={isChecked ? {borderColor:'var(--apple-blue)'} : {}}
+                      className="flex items-center justify-between p-3 rounded-xl border transition-all cursor-pointer"
+                      style={{
+                        backgroundColor: isChecked ? 'var(--bg-surface)' : 'var(--bg-body)',
+                        borderColor: isChecked ? 'var(--btn-primary-bg)' : 'var(--border-card)',
+                        boxShadow: isChecked ? '0 4px 12px rgba(0, 0, 0, 0.08)' : 'none'
+                      }}
                     >
                       <div className="flex items-center gap-3">
                         <input
                           type="checkbox"
                           checked={isChecked}
                           onChange={() => toggleSubItem(sub.id)}
-                          className="w-4 h-4 rounded border-slate-300 cursor-pointer accent-[var(--apple-blue)]"
+                          className="w-4 h-4 rounded cursor-pointer"
                         />
-                        <span className={`text-xs sm:text-sm font-bold ${isChecked ? 'text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400'}`}>
+                        <span className="text-xs sm:text-sm font-bold" style={{ color: 'var(--text-primary)' }}>
                           {sub.title}
                         </span>
                       </div>
-                      <span className="text-xs sm:text-sm font-black" style={{color:'var(--apple-blue)'}}>
+                      <span className="text-xs sm:text-sm font-black price-sale">
                         ₹{sub.price}
                       </span>
                     </label>
@@ -315,50 +415,70 @@ export default function ProductDetailModal({ item, onClose, onReportItem, curren
           )}
 
           {/* Seller Metadata */}
-          <div className="p-3 bg-slate-50 dark:bg-slate-950/40 rounded-xl border border-slate-200 dark:border-slate-800/60 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+          <div
+            className="p-3 rounded-xl border flex items-center justify-between text-xs"
+            style={{
+              backgroundColor: 'var(--bg-body)',
+              borderColor: 'var(--border-card)'
+            }}
+          >
             <div>
-              <span className="text-slate-400 dark:text-slate-500">Seller: </span>
-              <span className="text-slate-700 dark:text-slate-300 font-bold">{item.sellerName || 'Verified Student'}</span>
+              <span style={{ color: 'var(--text-secondary)' }}>Seller: </span>
+              <span className="font-bold" style={{ color: 'var(--text-primary)' }}>
+                {item.sellerName || 'Verified Student'}
+              </span>
             </div>
             <div>
-              <span className="text-slate-400 dark:text-slate-500">Listing Contact: </span>
-              <span className="font-mono font-bold" style={{color:'var(--apple-blue)'}}>{targetWhatsapp}</span>
+              <span style={{ color: 'var(--text-secondary)' }}>Listing Contact: </span>
+              <span className="font-mono font-bold" style={{ color: 'var(--btn-primary-bg)' }}>
+                {targetWhatsapp}
+              </span>
             </div>
           </div>
 
         </div>
 
         {/* Primary CTA Action Footer */}
-        <div className="p-4 sm:p-5 border-t border-slate-200/50 dark:border-white/10 flex items-center gap-3">
-          <div className="flex-1 flex items-center">
-            <a
-              href={generateWhatsappUrl()}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn-primary w-full flex items-center justify-center gap-2 py-3.5 px-6 rounded-2xl text-sm sm:text-base shadow-xl"
-            >
-              <MessageCircle className="w-5 h-5 text-current" />
-              <span>
-                {item.isCartSell
-                  ? `Chat on WhatsApp (Selected: ₹${totalPrice.toLocaleString('en-IN')})`
-                  : 'Chat on WhatsApp'}
-              </span>
-            </a>
-            <InfoTooltip text="Opens WhatsApp with a pre-filled message detailing your selected items and pricing." position="top" />
-          </div>
+        <div
+          className="p-4 sm:p-5 border-t flex items-center gap-3"
+          style={{
+            backgroundColor: 'var(--bg-surface)',
+            borderColor: 'var(--border-card)'
+          }}
+        >
+          <a
+            href={generateWhatsappUrl()}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn-primary w-full flex items-center justify-center gap-2 py-3.5 px-6 rounded-2xl text-sm sm:text-base font-bold shadow-xl cursor-pointer"
+          >
+            <MessageCircle className="w-5 h-5 text-current" />
+            <span>
+              {item.isCartSell
+                ? `Chat on WhatsApp (Selected: ₹${totalPrice.toLocaleString('en-IN')})`
+                : 'Chat on WhatsApp'}
+            </span>
+          </a>
         </div>
 
       </div>
 
       {/* Report Modal Dialog */}
       {showReportModal && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl">
-            <div className="flex items-center gap-2 text-rose-600 dark:text-rose-400 font-bold mb-2">
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in">
+          <div
+            className="border rounded-2xl max-w-md w-full p-6 shadow-2xl"
+            style={{
+              backgroundColor: 'var(--bg-surface)',
+              borderColor: 'var(--border-card)',
+              color: 'var(--text-primary)'
+            }}
+          >
+            <div className="flex items-center gap-2 font-bold mb-2 text-rose-500">
               <ShieldAlert className="w-5 h-5" />
               <span>Report Listing to Admin</span>
             </div>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">
+            <p className="text-xs mb-4" style={{ color: 'var(--text-secondary)' }}>
               Help keep IISER Mohali campus safe. Please describe why this item should be reviewed by moderators.
             </p>
             <form onSubmit={handleReportSubmit} className="space-y-4">
@@ -367,20 +487,26 @@ export default function ProductDetailModal({ item, onClose, onReportItem, curren
                 onChange={(e) => setReportReason(e.target.value)}
                 placeholder="Reason (e.g. Prohibited item, fake price, duplicate post, inappropriate content)..."
                 rows={3}
-                className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-xs text-slate-900 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:border-rose-500"
+                className="w-full border rounded-xl p-3 text-xs placeholder-slate-400 focus:outline-none"
+                style={{
+                  backgroundColor: 'var(--bg-body)',
+                  borderColor: 'var(--border-card)',
+                  color: 'var(--text-primary)'
+                }}
                 required
               />
               <div className="flex items-center justify-end gap-2">
                 <button
                   type="button"
                   onClick={() => setShowReportModal(false)}
-                  className="px-3 py-2 rounded-xl text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white"
+                  className="px-3 py-2 rounded-xl text-xs font-semibold cursor-pointer"
+                  style={{ color: 'var(--text-secondary)' }}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-500 text-white transition-all"
+                  className="px-4 py-2 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-500 text-white transition-all cursor-pointer shadow-md"
                 >
                   Submit Report
                 </button>

@@ -142,41 +142,104 @@ export async function getGoogleOAuthUrl(emailHint) {
 }
 
 /**
+/**
  * Update user profile in Supabase DB and Auth metadata
  */
-export async function updateUserProfile(email, name, whatsapp) {
-  try {
-    const { data: { session } } = await supabase.auth.getSession();
-    const cleanEmail = email.toLowerCase().trim();
-    const cleanName = name.trim();
-    const cleanPhone = whatsapp.trim();
-    const adminFlag = isUserAdmin(cleanEmail);
+export async function updateUserProfile(email, name, whatsapp, userId = null) {
+  const cleanEmail = email ? email.toLowerCase().trim() : '';
+  const cleanName = name ? name.trim() : '';
+  const cleanPhone = whatsapp ? whatsapp.trim() : '';
+  const adminFlag = isUserAdmin(cleanEmail);
 
-    if (session?.user) {
-      await supabase.from('profiles').upsert({
-        id: session.user.id,
-        email: cleanEmail,
-        name: cleanName,
-        whatsapp: cleanPhone,
-        is_admin: adminFlag,
-        updated_at: new Date().toISOString()
-      }, { onConflict: 'id' });
-
-      await supabase.auth.updateUser({
-        data: { name: cleanName, whatsapp: cleanPhone }
-      });
-    } else {
-      // Upsert by email if no session (fallback)
-      await supabase.from('profiles').upsert({
-        email: cleanEmail,
-        name: cleanName,
-        whatsapp: cleanPhone,
-        is_admin: adminFlag
-      }, { onConflict: 'email' });
+  let targetId = userId;
+  if (!targetId) {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      targetId = session?.user?.id;
+    } catch (e) {
+      console.warn("Could not get current session user id:", e.message);
     }
-  } catch (err) {
-    console.warn("Could not sync profile update to Supabase:", err.message);
   }
+
+  let dbSuccess = false;
+
+  // 1. Try updating by user id first if present
+  if (targetId) {
+    const { data, error } = await supabase
+      .from('profiles')
+      .update({
+        name: cleanName,
+        whatsapp: cleanPhone
+      })
+      .eq('id', targetId)
+      .select();
+
+    if (!error && data && data.length > 0) {
+      dbSuccess = true;
+    } else if (error) {
+      console.warn("Direct update by id failed:", error.message);
+    }
+  }
+
+  // 2. Try updating by email if not updated yet
+  if (!dbSuccess && cleanEmail) {
+    const { data, error } = await supabase
+      .from('profiles')
+      .update({
+        name: cleanName,
+        whatsapp: cleanPhone
+      })
+      .eq('email', cleanEmail)
+      .select();
+
+    if (!error && data && data.length > 0) {
+      dbSuccess = true;
+    } else if (error) {
+      console.warn("Direct update by email failed:", error.message);
+    }
+  }
+
+  // 3. Fallback: Upsert into public.profiles with exact table schema columns
+  if (!dbSuccess) {
+    const payload = {
+      email: cleanEmail,
+      name: cleanName,
+      whatsapp: cleanPhone,
+      is_admin: adminFlag,
+      is_suspended: false
+    };
+    if (targetId) payload.id = targetId;
+
+    const { error: upsertErr } = await supabase
+      .from('profiles')
+      .upsert(payload, { onConflict: targetId ? 'id' : 'email' });
+
+    if (upsertErr) {
+      console.error("Critical: Could not save profile in Supabase profiles table:", upsertErr);
+      throw new Error(upsertErr.message || "Failed to persist profile updates to database.");
+    }
+  }
+
+  // 4. Keep Supabase Auth user_metadata in sync
+  try {
+    await supabase.auth.updateUser({
+      data: {
+        name: cleanName,
+        full_name: cleanName,
+        whatsapp: cleanPhone
+      }
+    });
+  } catch (authErr) {
+    console.warn("Could not update auth user metadata:", authErr.message);
+  }
+
+  return {
+    id: targetId,
+    email: cleanEmail,
+    name: cleanName,
+    whatsapp: cleanPhone,
+    isAdmin: adminFlag
+  };
 }
 
 /**
@@ -188,28 +251,30 @@ export async function saveUserProfile(userId, email, name, whatsapp) {
   const cleanPhone = whatsapp.trim();
   const adminFlag = isUserAdmin(cleanEmail);
 
-  // 1. Upsert into Supabase public.profiles table
-  const { data, error } = await supabase.from('profiles').upsert({
+  // 1. Upsert into Supabase public.profiles table with exact table columns
+  const { error } = await supabase.from('profiles').upsert({
     id: userId,
     email: cleanEmail,
     name: cleanName,
     whatsapp: cleanPhone,
     is_admin: adminFlag,
-    is_suspended: false,
-    created_at: new Date().toISOString()
-  }, { onConflict: 'id' }).select().single();
+    is_suspended: false
+  }, { onConflict: 'id' });
 
   if (error) {
     console.error("Error saving profile to Supabase:", error);
-    // If select fails due to RLS, try simple upsert without select
-    await supabase.from('profiles').upsert({
-      id: userId,
-      email: cleanEmail,
+    // If conflict on ID failed, try updating directly by id or email
+    const { error: fallbackErr } = await supabase.from('profiles').update({
       name: cleanName,
-      whatsapp: cleanPhone,
-      is_admin: adminFlag,
-      is_suspended: false
-    });
+      whatsapp: cleanPhone
+    }).eq('id', userId);
+    
+    if (fallbackErr) {
+      await supabase.from('profiles').update({
+        name: cleanName,
+        whatsapp: cleanPhone
+      }).eq('email', cleanEmail);
+    }
   }
 
   // 2. Also update Supabase Auth user metadata
@@ -217,6 +282,7 @@ export async function saveUserProfile(userId, email, name, whatsapp) {
     await supabase.auth.updateUser({
       data: {
         name: cleanName,
+        full_name: cleanName,
         whatsapp: cleanPhone
       }
     });
