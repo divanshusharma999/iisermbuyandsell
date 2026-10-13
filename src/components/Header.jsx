@@ -218,6 +218,10 @@ export default function Header({
                       <p className="text-[10px] mt-0.5 truncate" style={{ color: 'var(--text-secondary)' }}>
                         Phone: {currentUser?.whatsapp || 'Not set'}
                       </p>
+                      <div className="flex items-center gap-1.5 text-[10px] text-emerald-600 dark:text-emerald-400 mt-1.5 font-medium">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                        <span>Device remembered (Stays signed in)</span>
+                      </div>
                     </div>
 
                     <button

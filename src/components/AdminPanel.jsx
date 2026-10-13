@@ -1,5 +1,9 @@
 import React, { useState } from 'react';
-import { ShieldCheck, UserX, UserCheck, Trash2, PhoneCall, Plus, X, Layers, Users, ShieldAlert, Sparkles, Package } from 'lucide-react';
+import {
+  ShieldCheck, UserX, UserCheck, Trash2, PhoneCall, Plus, X, Layers,
+  Users, ShieldAlert, Sparkles, Package, Database, Clock, Copy, Check, RefreshCw, CheckCircle
+} from 'lucide-react';
+import { deleteExpiredListingsFromSupabase } from '../supabase';
 
 export default function AdminPanel({
   listings,
@@ -14,6 +18,9 @@ export default function AdminPanel({
   const [activeTab, setActiveTab] = useState('moderation');
   const [keywordInput, setKeywordInput] = useState('');
   const [filterReroutedOnly, setFilterReroutedOnly] = useState(false);
+  const [isPurging, setIsPurging] = useState(false);
+  const [purgeResult, setPurgeResult] = useState(null);
+  const [copiedSql, setCopiedSql] = useState(false);
 
   const handleAddKeyword = (e) => {
     e.preventDefault();
@@ -103,6 +110,22 @@ export default function AdminPanel({
               } : {}}
             >
               User Directory ({users.length})
+            </button>
+
+            <button
+              onClick={() => setActiveTab('cleanup')}
+              className={`px-3.5 py-2 text-xs font-bold rounded-2xl transition-all cursor-pointer border ${
+                activeTab === 'cleanup'
+                  ? 'btn-primary shadow-md'
+                  : 'hover:opacity-80'
+              }`}
+              style={activeTab !== 'cleanup' ? {
+                backgroundColor: 'var(--bg-body)',
+                borderColor: 'var(--border-card)',
+                color: 'var(--text-secondary)'
+              } : {}}
+            >
+              Database & Deletions
             </button>
           </div>
         </div>
@@ -346,6 +369,213 @@ export default function AdminPanel({
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* ─── TAB 4: DATABASE & DELETIONS MANAGEMENT ─────────────────────────── */}
+      {activeTab === 'cleanup' && (
+        <div className="space-y-6 animate-in fade-in">
+          
+          {/* Status & Immediate Purge Action Card */}
+          <div
+            className="rounded-3xl p-6 border shadow-sm space-y-4"
+            style={{
+              backgroundColor: 'var(--bg-surface)',
+              borderColor: 'var(--border-card)'
+            }}
+          >
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <Database className="w-4 h-4 text-emerald-500" />
+                  <span className="font-extrabold text-sm uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+                    Live Supabase Database Sync Active
+                  </span>
+                </div>
+                <h3 className="heading-section text-xl font-extrabold">
+                  Listing Deletion & 21-Day Expiry Engine
+                </h3>
+                <p className="text-xs max-w-2xl" style={{ color: 'var(--text-secondary)' }}>
+                  All deleted items and listings older than 21 days are permanently purged from both the Supabase <code>listings</code> table and the <code>product-images</code> storage bucket.
+                </p>
+              </div>
+
+              {/* Trigger Purge Button */}
+              <button
+                type="button"
+                disabled={isPurging}
+                onClick={async () => {
+                  setIsPurging(true);
+                  setPurgeResult(null);
+                  try {
+                    const count = await deleteExpiredListingsFromSupabase();
+                    setPurgeResult({
+                      success: true,
+                      message: count > 0
+                        ? `Successfully deleted ${count} expired listing(s) and their images from Supabase.`
+                        : 'Database is clean! No expired listings found.'
+                    });
+                  } catch (err) {
+                    setPurgeResult({
+                      success: false,
+                      message: `Cleanup error: ${err.message || 'Could not reach Supabase.'}`
+                    });
+                  } finally {
+                    setIsPurging(false);
+                  }
+                }}
+                className="btn-primary py-3 px-5 rounded-2xl text-xs sm:text-sm font-bold flex items-center gap-2 shrink-0 shadow-md cursor-pointer disabled:opacity-60"
+              >
+                {isPurging ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 animate-spin text-current" />
+                    <span>Cleaning Supabase...</span>
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-4 h-4 text-current" />
+                    <span>Purge Expired Listings Now</span>
+                  </>
+                )}
+              </button>
+            </div>
+
+            {/* Purge Result Alert */}
+            {purgeResult && (
+              <div
+                className={`p-3.5 rounded-2xl border text-xs flex items-center gap-2.5 animate-in fade-in ${
+                  purgeResult.success
+                    ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-700 dark:text-emerald-300'
+                    : 'bg-rose-500/10 border-rose-500/30 text-rose-700 dark:text-rose-300'
+                }`}
+              >
+                <CheckCircle className="w-4 h-4 shrink-0" />
+                <span className="font-semibold">{purgeResult.message}</span>
+              </div>
+            )}
+          </div>
+
+          {/* How It Works Architecture Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            
+            {/* Card 1: User / Moderator Deletion */}
+            <div
+              className="rounded-3xl p-5 border space-y-3"
+              style={{
+                backgroundColor: 'var(--bg-surface)',
+                borderColor: 'var(--border-card)'
+              }}
+            >
+              <div className="flex items-center gap-2 font-bold text-sm">
+                <CheckCircle className="w-4 h-4 text-section-icon" />
+                <span>1. Immediate Deletion (Sold or Deleted)</span>
+              </div>
+              <p className="text-xs leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
+                When any seller clicks <strong>Sold</strong>, <strong>Delete</strong>, or when an admin clicks <strong>Delete Listing</strong>:
+              </p>
+              <ul className="text-xs space-y-1.5 list-disc list-inside opacity-90 leading-relaxed">
+                <li>Row is permanently deleted from Supabase <code>listings</code> table.</li>
+                <li>All uploaded photo files are deleted from Supabase Storage <code>product-images</code>.</li>
+                <li>Local client state is updated instantly so it disappears from the website.</li>
+              </ul>
+            </div>
+
+            {/* Card 2: 21-Day Expiry Engine */}
+            <div
+              className="rounded-3xl p-5 border space-y-3"
+              style={{
+                backgroundColor: 'var(--bg-surface)',
+                borderColor: 'var(--border-card)'
+              }}
+            >
+              <div className="flex items-center gap-2 font-bold text-sm">
+                <Clock className="w-4 h-4 text-section-icon" />
+                <span>2. Automatic 21-Day Expiry</span>
+              </div>
+              <p className="text-xs leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
+                Listings automatically expire 21 days after posting unless renewed:
+              </p>
+              <ul className="text-xs space-y-1.5 list-disc list-inside opacity-90 leading-relaxed">
+                <li>Queries filter out any item with <code>expires_at &lt; NOW()</code>.</li>
+                <li>The website automatically sweeps and deletes all expired rows and photos upon query.</li>
+                <li>Sellers can extend their listing for an additional 21 days via their dashboard.</li>
+              </ul>
+            </div>
+
+          </div>
+
+          {/* Card 3: Supabase Database-Native pg_cron Setup Guide */}
+          <div
+            className="rounded-3xl p-6 border space-y-4"
+            style={{
+              backgroundColor: 'var(--bg-surface)',
+              borderColor: 'var(--border-card)'
+            }}
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <h4 className="font-extrabold text-sm sm:text-base">
+                  3. Scheduled Server-Side Cleanup (Supabase pg_cron)
+                </h4>
+                <p className="text-xs mt-0.5" style={{ color: 'var(--text-secondary)' }}>
+                  To ensure expired rows are deleted in Supabase every night even if no user opens the website:
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  const sql = `-- Enable pg_cron and schedule auto-cleanup at midnight\nCREATE EXTENSION IF NOT EXISTS pg_cron;\n\nSELECT cron.schedule(\n  'auto-delete-expired-listings',\n  '0 0 * * *',\n  $$DELETE FROM public.listings WHERE expires_at < NOW();$$\n);`;
+                  navigator.clipboard.writeText(sql).then(() => {
+                    setCopiedSql(true);
+                    setTimeout(() => setCopiedSql(false), 2500);
+                  });
+                }}
+                className="px-3 py-1.5 rounded-xl border text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                style={{
+                  backgroundColor: 'var(--bg-body)',
+                  borderColor: 'var(--border-card)',
+                  color: 'var(--text-primary)'
+                }}
+              >
+                {copiedSql ? (
+                  <>
+                    <Check className="w-3.5 h-3.5 text-emerald-500" />
+                    <span>Copied!</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-3.5 h-3.5 text-section-icon" />
+                    <span>Copy SQL</span>
+                  </>
+                )}
+              </button>
+            </div>
+
+            <ol className="text-xs space-y-2 list-decimal list-inside opacity-90 leading-relaxed">
+              <li>Open your <strong>Supabase Dashboard</strong> &rarr; <em>Database &rarr; Extensions</em> &rarr; Enable <strong>pg_cron</strong>.</li>
+              <li>Go to <strong>SQL Editor</strong> &rarr; Create new query, paste the snippet below, and click <strong>Run</strong>:</li>
+            </ol>
+
+            <pre
+              className="p-4 rounded-2xl text-xs font-mono overflow-x-auto border leading-relaxed"
+              style={{
+                backgroundColor: 'var(--bg-body)',
+                borderColor: 'var(--border-card)',
+                color: 'var(--text-primary)'
+              }}
+            >
+{`-- Enable pg_cron and schedule daily auto-cleanup at midnight UTC
+CREATE EXTENSION IF NOT EXISTS pg_cron;
+
+SELECT cron.schedule(
+  'auto-delete-expired-listings',
+  '0 0 * * *',
+  $$DELETE FROM public.listings WHERE expires_at < NOW();$$
+);`}
+            </pre>
+          </div>
+
         </div>
       )}
 

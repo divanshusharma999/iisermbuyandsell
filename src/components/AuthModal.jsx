@@ -257,7 +257,7 @@ export default function AuthModal({ currentUser, onSaveProfile, onClose, onSignO
           </form>
         ) : (
           /* CASE 2: LOGGED OUT USER */
-          <div className="py-2">
+          <div className="py-2 space-y-3">
             <a
               href={googleOAuthUrl || '#'}
               target={googleOAuthUrl ? '_top' : undefined}

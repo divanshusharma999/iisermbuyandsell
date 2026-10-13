@@ -1,11 +1,19 @@
 import React, { useState } from 'react';
 import {
   X, ChevronLeft, ChevronRight, MessageCircle, ExternalLink, Flag, Share2,
-  CheckCircle2, Clock, Layers, ShieldAlert, Copy, Sparkles, Building2, PhoneCall, Tag
+  CheckCircle2, Clock, Layers, ShieldAlert, Copy, Sparkles, Building2, PhoneCall, Tag,
+  Trash2, CheckCircle
 } from 'lucide-react';
 import { DEFAULT_ADMIN_SUPPORT_WHATSAPP } from '../data/mockData';
 
-export default function ProductDetailModal({ item, onClose, onReportItem, currentUser }) {
+export default function ProductDetailModal({
+  item,
+  onClose,
+  onReportItem,
+  currentUser,
+  onMarkAsSold,
+  onDeleteListing
+}) {
   if (!item) return null;
 
   const [activeImageIndex, setActiveImageIndex] = useState(item.thumbnailIndex || 0);
@@ -435,12 +443,70 @@ export default function ProductDetailModal({ item, onClose, onReportItem, curren
 
         {/* Primary CTA Action Footer */}
         <div
-          className="p-4 sm:p-5 border-t flex items-center gap-3"
+          className="p-4 sm:p-5 border-t space-y-3"
           style={{
             backgroundColor: 'var(--bg-surface)',
             borderColor: 'var(--border-card)'
           }}
         >
+          {/* Owner or Admin Quick Actions: Mark as Sold or Delete */}
+          {(currentUser?.email?.toLowerCase() === item.sellerEmail?.toLowerCase() || currentUser?.isAdmin) && (
+            <div
+              className="p-3 rounded-2xl border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 text-xs"
+              style={{
+                backgroundColor: 'var(--bg-body)',
+                borderColor: 'var(--border-card)'
+              }}
+            >
+              <div>
+                <span className="font-bold flex items-center gap-1.5" style={{ color: 'var(--text-primary)' }}>
+                  <ShieldAlert className="w-3.5 h-3.5 text-amber-500" />
+                  <span>Listing Owner Actions</span>
+                  <span className="text-[10px] px-1.5 py-0.5 rounded font-semibold text-emerald-700 bg-emerald-500/10 dark:text-emerald-300">
+                    Active
+                  </span>
+                </span>
+                <p className="text-[11px] opacity-75 mt-0.5" style={{ color: 'var(--text-secondary)' }}>
+                  Marking sold or deleting permanently removes item & photos from Supabase.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                {onMarkAsSold && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onMarkAsSold(item.id);
+                      onClose();
+                    }}
+                    className="flex-1 sm:flex-initial px-3 py-1.5 rounded-xl font-bold text-xs flex items-center justify-center gap-1 text-white shadow-sm cursor-pointer"
+                    style={{ backgroundColor: 'var(--badge-stock)' }}
+                    title="Mark listing as sold and permanently delete from Supabase"
+                  >
+                    <CheckCircle className="w-3.5 h-3.5" />
+                    <span>Sold</span>
+                  </button>
+                )}
+
+                {onDeleteListing && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onDeleteListing(item.id);
+                      onClose();
+                    }}
+                    className="flex-1 sm:flex-initial px-3 py-1.5 rounded-xl font-bold text-xs flex items-center justify-center gap-1 border text-rose-600 dark:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer"
+                    style={{ borderColor: 'var(--border-card)' }}
+                    title="Delete listing permanently from Supabase"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Delete</span>
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+
           <a
             href={generateWhatsappUrl()}
             target="_blank"

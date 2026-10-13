@@ -20,6 +20,7 @@ import {
   createListingInSupabase,
   updateListingInSupabase,
   deleteListingFromSupabase,
+  deleteExpiredListingsFromSupabase,
   fetchBannedKeywordsFromSupabase,
   addBannedKeywordToSupabase,
   removeBannedKeywordFromSupabase,
@@ -27,6 +28,10 @@ import {
   toggleUserSuspensionInSupabase,
   getCurrentUserProfile,
   signOutUser,
+  isDeviceRemembered,
+  getSavedDeviceUser,
+  saveDeviceUser,
+  clearDeviceUser,
   supabase
 } from './supabase';
 
@@ -67,6 +72,10 @@ export default function App() {
   });
 
   const [currentUser, setCurrentUser] = useState(() => {
+    if (isDeviceRemembered()) {
+      const deviceSaved = getSavedDeviceUser();
+      if (deviceSaved?.email) return deviceSaved;
+    }
     const saved = localStorage.getItem('iiserm_current_user');
     return saved ? JSON.parse(saved) : null;
   });
@@ -167,8 +176,11 @@ export default function App() {
 
       // 4. Check Current Supabase Auth Session
       const activeUser = await getCurrentUserProfile();
-      if (activeUser) {
+      if (activeUser && !activeUser.accessDenied) {
         setCurrentUser(activeUser);
+        if (isDeviceRemembered()) {
+          saveDeviceUser(activeUser);
+        }
       }
 
       // Check if arriving via Password Recovery Link
@@ -195,7 +207,7 @@ export default function App() {
         if (userProfile?.accessDenied) {
           showToast(userProfile.message, 'error');
           setCurrentUser(null);
-          localStorage.removeItem('iiserm_current_user');
+          clearDeviceUser();
           if (window.location.hash.includes('access_token') || window.location.search.includes('code=')) {
             window.history.replaceState({}, document.title, window.location.pathname);
           }
@@ -203,6 +215,9 @@ export default function App() {
         }
         if (userProfile) {
           setCurrentUser(userProfile);
+          if (isDeviceRemembered()) {
+            saveDeviceUser(userProfile);
+          }
           if (event === 'SIGNED_IN') {
             showToast(`Welcome, ${userProfile.name || userProfile.email}!`);
           }
@@ -212,7 +227,7 @@ export default function App() {
         }
       } else if (event === 'SIGNED_OUT') {
         setCurrentUser(null);
-        localStorage.removeItem('iiserm_current_user');
+        clearDeviceUser();
       }
     });
 
@@ -272,16 +287,22 @@ export default function App() {
 
   const handleMarkAsSold = (id) => {
     const targetItem = listings.find(item => item.id === id);
-    setListings(listings.filter(item => item.id !== id));
+    const updated = listings.filter(item => item.id !== id);
+    setListings(updated);
+    localStorage.setItem('iiserm_listings', JSON.stringify(updated));
+    if (selectedProduct?.id === id) setSelectedProduct(null);
     deleteListingFromSupabase(id, targetItem?.images);
-    showToast('Item marked as sold and removed from bulletin board.');
+    showToast('Item marked as sold & permanently deleted from Supabase.');
   };
 
   const handleDeleteListing = (id) => {
     const targetItem = listings.find(item => item.id === id);
-    setListings(listings.filter(item => item.id !== id));
+    const updated = listings.filter(item => item.id !== id);
+    setListings(updated);
+    localStorage.setItem('iiserm_listings', JSON.stringify(updated));
+    if (selectedProduct?.id === id) setSelectedProduct(null);
     deleteListingFromSupabase(id, targetItem?.images);
-    showToast('Listing deleted.');
+    showToast('Listing permanently deleted from Supabase.');
   };
 
   // ─── Admin Handlers (Supabase Connected) ───────────────────────────────────
@@ -295,9 +316,12 @@ export default function App() {
 
   const handleForceDeleteListing = (id) => {
     const targetItem = listings.find(item => item.id === id);
-    setListings(listings.filter(item => item.id !== id));
+    const updated = listings.filter(item => item.id !== id);
+    setListings(updated);
+    localStorage.setItem('iiserm_listings', JSON.stringify(updated));
+    if (selectedProduct?.id === id) setSelectedProduct(null);
     deleteListingFromSupabase(id, targetItem?.images);
-    showToast('Listing removed by moderator.', 'info');
+    showToast('Listing removed by moderator and deleted from Supabase.', 'info');
   };
 
   const handleToggleRerouteChat = (id) => {
@@ -331,8 +355,8 @@ export default function App() {
       console.warn("Sign out exception:", e);
     }
     setCurrentUser(null);
-    localStorage.removeItem('iiserm_current_user');
-    showToast('Signed out successfully.');
+    clearDeviceUser();
+    showToast('Signed out of this device successfully.');
   };
 
   const userListings = listings.filter(item => item.sellerEmail?.toLowerCase() === currentUser?.email?.toLowerCase());
@@ -606,6 +630,8 @@ export default function App() {
           onClose={() => setSelectedProduct(null)}
           onReportItem={(id, reason) => showToast(`Report for item ${id} received: ${reason}`, 'info')}
           currentUser={currentUser}
+          onMarkAsSold={handleMarkAsSold}
+          onDeleteListing={handleDeleteListing}
         />
       )}
 

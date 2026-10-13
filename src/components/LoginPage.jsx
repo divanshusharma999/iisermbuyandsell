@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Loader2, User, Phone, Mail, ArrowRight, AlertCircle, Heart, Info, X } from 'lucide-react';
+import { Loader2, User, Phone, Mail, ArrowRight, AlertCircle, Heart } from 'lucide-react';
 import BrandWordmark, { JoinedKMark } from './BrandLogo';
 import {
   signInWithGoogle,
@@ -11,7 +11,6 @@ export default function LoginPage({ currentUser, onSaveProfile }) {
   const [isAuthLoading, setIsAuthLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState(null);
   const [googleOAuthUrl, setGoogleOAuthUrl] = useState(null);
-  const [showOAuthHelp, setShowOAuthHelp] = useState(false);
 
   // First-time onboarding form state
   const [name, setName] = useState(currentUser?.name || '');
@@ -230,49 +229,6 @@ export default function LoginPage({ currentUser, onSaveProfile }) {
               )}
               <span className="truncate">{isAuthLoading ? 'Connecting...' : 'Sign in to Buy and Sell with Google'}</span>
             </a>
-
-            {/* Operator guidance note for Google OAuth consent screen */}
-            <div className="pt-1 text-center">
-              <button
-                type="button"
-                onClick={() => setShowOAuthHelp(!showOAuthHelp)}
-                className="text-[11px] inline-flex items-center gap-1 cursor-pointer hover:underline transition-opacity opacity-75 hover:opacity-100"
-                style={{ color: 'var(--text-secondary)' }}
-              >
-                <Info className="w-3 h-3" />
-                <span>Google Sign-In screen setup note</span>
-              </button>
-
-              {showOAuthHelp && (
-                <div
-                  className="mt-2.5 text-left p-3.5 rounded-2xl text-xs space-y-2 border animate-in fade-in"
-                  style={{
-                    backgroundColor: 'var(--bg-body)',
-                    borderColor: 'var(--border-card)',
-                    color: 'var(--text-primary)'
-                  }}
-                >
-                  <div className="flex items-center justify-between font-bold text-xs">
-                    <span>How to set Google prompt name to "Buy and Sell":</span>
-                    <button
-                      type="button"
-                      onClick={() => setShowOAuthHelp(false)}
-                      className="p-1 rounded hover:bg-black/10 cursor-pointer"
-                    >
-                      <X className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                  <ol className="list-decimal list-inside space-y-1 text-[11px] leading-relaxed opacity-90">
-                    <li>Go to <strong>Google Cloud Console</strong> &rarr; <em>APIs & Services &rarr; OAuth consent screen</em>.</li>
-                    <li>Set <strong>App name</strong> to <code>Buy and Sell</code> (or <code>buyKꞰsell</code>) and click Save.</li>
-                    <li>In <strong>Supabase Dashboard</strong> &rarr; <em>Authentication &rarr; Providers &rarr; Google</em>, ensure your custom Google OAuth Client ID is active.</li>
-                  </ol>
-                  <p className="text-[10px] opacity-75 border-t pt-1.5" style={{ borderColor: 'var(--border-card)' }}>
-                    Google will then show "Sign in to Buy and Sell" at the top of the Google login dialog.
-                  </p>
-                </div>
-              )}
-            </div>
           </div>
         )}
       </div>

@@ -14,6 +14,76 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 });
 
 // ====================================================================
+// DEVICE PERSISTENCE & "STAY SIGNED IN" CONFIGURATION
+// ====================================================================
+export const DEVICE_REMEMBER_KEY = 'buykksell_remember_device';
+export const DEVICE_USER_KEY = 'buykksell_device_user';
+export const LEGACY_USER_KEY = 'iiserm_current_user';
+
+/**
+ * Check if user opted to stay signed in on this device (defaults to true)
+ */
+export function isDeviceRemembered() {
+  try {
+    const saved = localStorage.getItem(DEVICE_REMEMBER_KEY);
+    return saved !== 'false'; // Defaults to true
+  } catch (e) {
+    return true;
+  }
+}
+
+/**
+ * Toggle device remember preference
+ */
+export function setDeviceRemembered(val) {
+  try {
+    localStorage.setItem(DEVICE_REMEMBER_KEY, val ? 'true' : 'false');
+  } catch (e) {
+    console.warn("Could not save device remember preference:", e);
+  }
+}
+
+/**
+ * Get device-remembered user profile
+ */
+export function getSavedDeviceUser() {
+  try {
+    const raw = localStorage.getItem(DEVICE_USER_KEY) || localStorage.getItem(LEGACY_USER_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    return parsed?.email ? parsed : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+/**
+ * Save current authenticated user to device storage
+ */
+export function saveDeviceUser(profile) {
+  if (!profile || !profile.email) return;
+  try {
+    const serialized = JSON.stringify(profile);
+    localStorage.setItem(DEVICE_USER_KEY, serialized);
+    localStorage.setItem(LEGACY_USER_KEY, serialized);
+  } catch (e) {
+    console.warn("Could not save device user:", e);
+  }
+}
+
+/**
+ * Clear device-saved user upon explicit sign out
+ */
+export function clearDeviceUser() {
+  try {
+    localStorage.removeItem(DEVICE_USER_KEY);
+    localStorage.removeItem(LEGACY_USER_KEY);
+  } catch (e) {
+    console.warn("Could not clear device user:", e);
+  }
+}
+
+// ====================================================================
 // DATA CONVERTERS (Database snake_case <-> App camelCase)
 // ====================================================================
 export function rowToListing(row) {
@@ -307,7 +377,7 @@ export async function saveUserProfile(userId, email, name, whatsapp) {
     console.warn("Could not update auth user metadata:", authErr.message);
   }
 
-  return {
+  const finalProfile = {
     id: userId,
     email: cleanEmail,
     name: cleanName,
@@ -317,6 +387,12 @@ export async function saveUserProfile(userId, email, name, whatsapp) {
     needsOnboarding: false,
     provider: 'google'
   };
+
+  if (isDeviceRemembered()) {
+    saveDeviceUser(finalProfile);
+  }
+
+  return finalProfile;
 }
 
 /**
@@ -386,16 +462,50 @@ export async function updateUserPassword(newPassword) {
  * Sign out current session
  */
 export async function signOutUser() {
-  const { error } = await supabase.auth.signOut();
-  if (error) console.error("Error signing out:", error);
+  try {
+    await supabase.auth.signOut();
+  } catch (error) {
+    console.error("Error signing out:", error);
+  }
+  clearDeviceUser();
 }
 
 /**
- * Get current session and user profile from Supabase
+ * Get current session and user profile from Supabase with device persistence
  */
 export async function getCurrentUserProfile() {
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session?.user) return null;
+  let session = null;
+  try {
+    const { data, error } = await supabase.auth.getSession();
+    if (!error && data?.session) {
+      session = data.session;
+    }
+  } catch (e) {
+    console.warn("Could not retrieve current Supabase session:", e.message);
+  }
+
+  // If session is absent, try refreshing if device is remembered
+  if (!session && isDeviceRemembered()) {
+    try {
+      const { data: refreshData } = await supabase.auth.refreshSession();
+      if (refreshData?.session) {
+        session = refreshData.session;
+      }
+    } catch (refErr) {
+      console.warn("Notice: background session refresh:", refErr.message);
+    }
+  }
+
+  // If Supabase session is not found, check if this device has a saved user profile
+  if (!session?.user) {
+    if (isDeviceRemembered()) {
+      const savedDeviceUser = getSavedDeviceUser();
+      if (savedDeviceUser && savedDeviceUser.email) {
+        return savedDeviceUser;
+      }
+    }
+    return null;
+  }
 
   const userEmail = session.user.email || '';
   const isCampusEmail = userEmail.toLowerCase().endsWith('@iisermohali.ac.in');
@@ -440,11 +550,10 @@ export async function getCurrentUserProfile() {
     console.warn("Could not query profile table:", err.message);
   }
 
-  // Resolve best known phone number: database -> user_metadata -> localStorage
+  // Resolve best known phone number: database -> user_metadata -> localStorage / device storage
   let savedLocalUser = null;
   try {
-    const raw = localStorage.getItem('iiserm_current_user');
-    if (raw) savedLocalUser = JSON.parse(raw);
+    savedLocalUser = getSavedDeviceUser();
   } catch (e) {}
 
   const resolvedPhone = (dbProfile?.whatsapp?.trim()) ||
@@ -472,7 +581,7 @@ export async function getCurrentUserProfile() {
     }).catch(e => console.warn("Background profile sync:", e.message));
   }
 
-  return {
+  const userProfile = {
     id: session.user.id,
     email: dbProfile?.email || userEmail,
     name: resolvedName,
@@ -482,6 +591,13 @@ export async function getCurrentUserProfile() {
     needsOnboarding: !resolvedPhone,
     provider: session.user.app_metadata?.provider || 'google'
   };
+
+  // If device is remembered and profile has completed onboarding, persist for seamless reopen
+  if (isDeviceRemembered() && resolvedPhone) {
+    saveDeviceUser(userProfile);
+  }
+
+  return userProfile;
 }
 
 // ====================================================================
@@ -631,8 +747,9 @@ export async function deleteExpiredListingsFromSupabase() {
 
     if (fetchErr) {
       console.warn("Could not query expired listings for cleanup:", fetchErr.message);
-      return 0;
     }
+
+    let deletedCount = 0;
 
     if (expiredRows && expiredRows.length > 0) {
       // Clean up storage images for all expired items
@@ -649,11 +766,22 @@ export async function deleteExpiredListingsFromSupabase() {
 
       if (deleteErr) {
         console.warn("Could not delete expired listings from Supabase table:", deleteErr.message);
+      } else {
+        deletedCount = expiredRows.length;
       }
-
-      return expiredRows.length;
     }
-    return 0;
+
+    // 3. Fallback: Also invoke database-side stored procedure if configured in Supabase
+    try {
+      const { data: rpcCount } = await supabase.rpc('delete_expired_listings');
+      if (typeof rpcCount === 'number' && rpcCount > 0) {
+        deletedCount = Math.max(deletedCount, rpcCount);
+      }
+    } catch (rpcErr) {
+      // rpc optional if pg_cron or SQL function not yet run by operator
+    }
+
+    return deletedCount;
   } catch (err) {
     console.warn("Exception in deleteExpiredListingsFromSupabase:", err);
     return 0;

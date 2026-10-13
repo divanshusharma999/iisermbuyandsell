@@ -69,6 +69,23 @@ export default function SellerDashboard({
         </div>
       </div>
 
+      {/* 21-Day Expiry & Permanent Deletion Policy Pill */}
+      <div
+        className="px-4 py-2.5 rounded-2xl border text-xs flex items-center justify-between gap-3"
+        style={{
+          backgroundColor: 'var(--bg-surface)',
+          borderColor: 'var(--border-card)',
+          color: 'var(--text-secondary)'
+        }}
+      >
+        <div className="flex items-center gap-2">
+          <Clock className="w-3.5 h-3.5 text-section-icon shrink-0" />
+          <span className="text-[11px] leading-tight">
+            <strong>21-Day Lifetime Policy:</strong> Active items expire and are purged from Supabase automatically after 21 days unless extended. Marking as <strong>Sold</strong> or clicking <strong>Delete</strong> permanently wipes item details and photos from Supabase.
+          </span>
+        </div>
+      </div>
+
       {/* ─── SELLER LISTINGS LIST ─────────────────────────────────────────────── */}
       {userListings.length === 0 ? (
         <div
