@@ -4,7 +4,6 @@ import {
   CheckCircle2, Clock, Layers, ShieldAlert, Copy, Sparkles, Building2, PhoneCall, Tag
 } from 'lucide-react';
 import { DEFAULT_ADMIN_SUPPORT_WHATSAPP } from '../data/mockData';
-import InfoTooltip from './InfoTooltip';
 
 export default function ProductDetailModal({ item, onClose, onReportItem, currentUser }) {
   if (!item) return null;
@@ -50,9 +49,9 @@ export default function ProductDetailModal({ item, onClose, onReportItem, curren
 
     if (item.isCartSell && selectedSubItems.length > 0) {
       const itemListStr = selectedSubItems.map(s => `• ${s.title} (₹${s.price})`).join('\n');
-      text = `Hey! I am interested in buying the following items from your listing "${item.title}" on KollectoP2P (IISER Mohali):\n\n${itemListStr}\n\nTotal Price: ₹${totalPrice.toLocaleString('en-IN')}.\nAre these still available?`;
+      text = `Hey! I am interested in buying the following items from your listing "${item.title}" on buyKꞰsell (IISER Mohali):\n\n${itemListStr}\n\nTotal Price: ₹${totalPrice.toLocaleString('en-IN')}.\nAre these still available?`;
     } else {
-      text = `Hey! I am interested in buying "${item.title}" listed for ₹${item.price.toLocaleString('en-IN')} on KollectoP2P (IISER Mohali).\nIs this still available?`;
+      text = `Hey! I am interested in buying "${item.title}" listed for ₹${item.price.toLocaleString('en-IN')} on buyKꞰsell (IISER Mohali).\nIs this still available?`;
     }
 
     return `https://wa.me/${cleanNum}?text=${encodeURIComponent(text)}`;
@@ -75,9 +74,7 @@ export default function ProductDetailModal({ item, onClose, onReportItem, curren
     triggerToast('Report submitted to Admin Moderation.');
   };
 
-  const images = item.images && item.images.length > 0
-    ? item.images
-    : ['https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?auto=format&fit=crop&w=800&q=80'];
+  const images = item.images && item.images.length > 0 ? item.images : [];
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 animate-in fade-in">
@@ -116,15 +113,8 @@ export default function ProductDetailModal({ item, onClose, onReportItem, curren
           }}
         >
           <div className="flex items-center gap-2">
-            <span
-              className="px-2.5 py-1 text-xs font-bold rounded-full flex items-center gap-1 border border-white/20"
-              style={{
-                backgroundColor: 'rgba(0, 0, 0, 0.25)',
-                color: 'var(--text-accent-hero)'
-              }}
-            >
-              <Building2 className="w-3.5 h-3.5" />
-              IISER Mohali Verified
+            <span className="font-extrabold text-sm" style={{ color: 'var(--text-on-dark)' }}>
+              Item Details
             </span>
           </div>
 
@@ -160,7 +150,7 @@ export default function ProductDetailModal({ item, onClose, onReportItem, curren
         {/* Modal Scrollable Content */}
         <div className="p-4 sm:p-6 overflow-y-auto space-y-6 flex-1" style={{ color: 'var(--text-primary)' }}>
           
-          {/* Image Carousel */}
+          {/* Image Container */}
           <div
             className="relative rounded-2xl overflow-hidden border group"
             style={{
@@ -169,17 +159,26 @@ export default function ProductDetailModal({ item, onClose, onReportItem, curren
             }}
           >
             <div className="h-64 sm:h-80 w-full relative flex items-center justify-center">
-              <img
-                src={images[activeImageIndex]}
-                alt={item.title}
-                className="max-h-full w-full object-contain"
-              />
+              {images.length > 0 ? (
+                <img
+                  src={images[activeImageIndex]}
+                  alt={item.title}
+                  className="max-h-full w-full object-contain"
+                />
+              ) : (
+                <div className="flex flex-col items-center justify-center text-slate-400 gap-2 p-6 text-center">
+                  <Package className="w-12 h-12 stroke-1 text-section-icon" />
+                  <span className="text-xs font-bold" style={{ color: 'var(--text-secondary)' }}>
+                    IISER Mohali Item Listing
+                  </span>
+                </div>
+              )}
 
               {images.length > 1 && (
                 <>
                   <button
                     onClick={() => setActiveImageIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1))}
-                    className="absolute left-3 p-2 rounded-full border transition-all shadow-lg cursor-pointer"
+                    className="absolute left-3 p-2 rounded-lg border transition-all shadow-lg cursor-pointer"
                     style={{
                       backgroundColor: 'var(--bg-surface)',
                       borderColor: 'var(--border-card)',
@@ -190,7 +189,7 @@ export default function ProductDetailModal({ item, onClose, onReportItem, curren
                   </button>
                   <button
                     onClick={() => setActiveImageIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1))}
-                    className="absolute right-3 p-2 rounded-full border transition-all shadow-lg cursor-pointer"
+                    className="absolute right-3 p-2 rounded-lg border transition-all shadow-lg cursor-pointer"
                     style={{
                       backgroundColor: 'var(--bg-surface)',
                       borderColor: 'var(--border-card)',
@@ -313,9 +312,8 @@ export default function ProductDetailModal({ item, onClose, onReportItem, curren
               borderColor: 'var(--border-card)'
             }}
           >
-            <h4 className="heading-section text-xs font-extrabold uppercase tracking-wider mb-1 flex items-center justify-between">
-              <span>Item Description</span>
-              <InfoTooltip text="Seller detailed description of condition, usage history, and hostel room location." position="left" />
+            <h4 className="heading-section text-xs font-extrabold uppercase tracking-wider mb-1">
+              Item Description
             </h4>
             <p className="text-sm whitespace-pre-line leading-relaxed" style={{ color: 'var(--text-primary)' }}>
               {item.description}
@@ -372,11 +370,8 @@ export default function ProductDetailModal({ item, onClose, onReportItem, curren
                 <div>
                   <h4 className="heading-section text-xs font-extrabold uppercase tracking-wider flex items-center gap-1.5">
                     <Layers className="w-4 h-4 text-section-icon" />
-                    <span>Select Bundle Sub-Items</span>
+                    <span>Bundle Items</span>
                   </h4>
-                  <p className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                    Check the items you want to buy. WhatsApp message will automatically list your selection!
-                  </p>
                 </div>
               </div>
 

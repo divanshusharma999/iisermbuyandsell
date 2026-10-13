@@ -9,16 +9,12 @@ export default function NotFound({ onGoHome }) {
           <FileQuestion className="w-10 h-10" />
         </div>
         
-        <span className="px-3 py-1 text-[11px] font-extrabold uppercase tracking-wider glass-badge rounded-full text-[var(--apple-blue)] mb-2 inline-block">
-          Error 404
-        </span>
-        
         <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
           Page Not Found
         </h2>
         
         <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-2 leading-relaxed">
-          The page or item listing you are looking for does not exist on IISER Mohali KollectoP2P or has been auto-removed after its 21-day bulletin timer.
+          The page or item listing you are looking for does not exist or is no longer available.
         </p>
 
         <div className="mt-6 flex items-center justify-center gap-3">

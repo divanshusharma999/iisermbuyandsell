@@ -1,56 +1,54 @@
 import React from 'react';
 import ProductCard from './ProductCard';
-import { PackageSearch, PlusCircle, Sparkles, Filter } from 'lucide-react';
-import InfoTooltip from './InfoTooltip';
+import { PackageSearch, PlusCircle } from 'lucide-react';
 
 export default function ProductGrid({ listings, onSelectProduct, onOpenUpload, onResetFilters }) {
   if (listings.length === 0) {
     return (
       <div
-        className="rounded-3xl p-8 sm:p-12 text-center my-8 max-w-xl mx-auto shadow-sm animate-in zoom-in-95 border"
+        className="rounded-2xl p-6 sm:p-10 text-center my-6 max-w-lg mx-auto shadow-xs border"
         style={{
           backgroundColor: 'var(--bg-surface)',
           borderColor: 'var(--border-card)'
         }}
       >
         <div
-          className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 border shadow-inner"
+          className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-3 border shadow-inner"
           style={{
             backgroundColor: 'var(--bg-body)',
             borderColor: 'var(--border-card)',
             color: 'var(--text-section-icon)'
           }}
         >
-          <PackageSearch className="w-8 h-8" />
+          <PackageSearch className="w-6 h-6" />
         </div>
 
-        {/* Heading styled with --btn-primary-bg in light mode / --text-primary in dark mode */}
-        <h3 className="heading-section text-xl font-extrabold">
-          No Campus Listings Found
+        <h3 className="heading-section text-base sm:text-lg font-bold">
+          No Listings Found
         </h3>
 
         <p
-          className="text-xs sm:text-sm mt-1 max-w-md mx-auto leading-relaxed"
+          className="text-xs mt-1 max-w-sm mx-auto leading-relaxed"
           style={{ color: 'var(--text-secondary)' }}
         >
-          No active listings match your current search query or category filter. Try clearing your filters or upload a new item!
+          No active items match your search or filter. Try clearing filters or post a new item!
         </p>
 
-        <div className="mt-6 flex items-center justify-center gap-3">
+        <div className="mt-5 flex items-center justify-center gap-2">
           {onResetFilters && (
             <button
               onClick={onResetFilters}
-              className="btn-secondary px-4 py-2.5 text-xs sm:text-sm font-bold shadow-sm"
+              className="btn-secondary px-3.5 py-2 text-xs font-bold rounded-lg shadow-xs"
             >
               Clear Filters
             </button>
           )}
           <button
             onClick={onOpenUpload}
-            className="btn-primary inline-flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm shadow-md"
+            className="btn-primary inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold rounded-lg shadow-sm"
           >
-            <PlusCircle className="w-4 h-4" />
-            <span>Upload New Item</span>
+            <PlusCircle className="w-3.5 h-3.5" />
+            <span>Upload Item</span>
           </button>
         </div>
       </div>
@@ -58,33 +56,15 @@ export default function ProductGrid({ listings, onSelectProduct, onOpenUpload, o
   }
 
   return (
-    <section aria-label="Campus Listings Grid" className="pb-8">
+    <section aria-label="Marketplace Listings Grid" className="py-2 pb-10">
       
-      {/* ─── SECTION HEADING ─────────────────────────────────────────────────── */}
-      {/* Requirement: Section icons styled with --text-section-icon and heading text styled with --btn-primary-bg (light) or --text-primary (dark) */}
-      <div className="flex items-center justify-between mb-4 px-1">
-        <div className="flex items-center gap-2.5">
-          <div
-            className="w-8 h-8 rounded-xl flex items-center justify-center border shadow-xs"
-            style={{
-              backgroundColor: 'var(--bg-surface)',
-              borderColor: 'var(--border-card)'
-            }}
-          >
-            <Sparkles className="w-4 h-4 text-section-icon" />
-          </div>
-          <h2 className="heading-section text-lg sm:text-xl font-extrabold tracking-tight">
-            Active Campus Listings & Clearouts
-          </h2>
-        </div>
-
-        <div className="text-xs font-semibold" style={{ color: 'var(--text-secondary)' }}>
-          Showing <span className="font-extrabold" style={{ color: 'var(--text-primary)' }}>{listings.length}</span> verified posts
-        </div>
+      {/* Subtle Counter */}
+      <div className="flex items-center justify-between mb-2.5 px-0.5 text-[11px] font-semibold" style={{ color: 'var(--text-secondary)' }}>
+        <span>Listings ({listings.length})</span>
       </div>
 
-      {/* Masonry / Grid Container */}
-      <div className="masonry-grid pb-10">
+      {/* ─── Compact Grid: 2 Columns on Mobile for 3 Rows Fit ─── */}
+      <div className="masonry-grid">
         {listings.map((item) => (
           <ProductCard key={item.id} item={item} onClick={onSelectProduct} />
         ))}

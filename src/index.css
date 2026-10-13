@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-/* ─── KollectoP2P Complete Marketplace Theme Token System ────── */
+/* ─── buyKꞰsell Complete Marketplace Theme Token System ────── */
 
 :root {
   /* Canvas & Surfaces */
@@ -148,16 +148,16 @@
 
 /* ─── Semantic Components & Utility Classes ──────────────────── */
 
-/* Primary CTA Button (Wires up all 4 states) */
+/* Primary CTA Button (Rectangular rounded corners, NO PILLS) */
 .btn-primary {
   background-color: var(--btn-primary-bg);
   color: var(--btn-primary-text);
   border: 1px solid transparent;
-  border-radius: 0.85rem;
+  border-radius: 0.5rem;
   font-weight: 700;
   letter-spacing: -0.01em;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -167,22 +167,25 @@
 .btn-primary:focus-visible {
   background-color: var(--btn-primary-hover-bg) !important;
   color: var(--btn-primary-hover-text) !important;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
   outline: none;
 }
 .btn-primary:active {
-  transform: scale(0.97);
+  transform: scale(0.98);
 }
 
-/* Secondary Button */
+/* Secondary Button (Rectangular rounded corners, NO PILLS) */
 .btn-secondary {
   background-color: var(--bg-surface);
   color: var(--text-primary);
   border: 1px solid var(--border-card);
-  border-radius: 0.85rem;
+  border-radius: 0.5rem;
   font-weight: 700;
   transition: all 0.2s ease;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 .btn-secondary:hover {
   background-color: var(--btn-primary-bg);
@@ -190,16 +193,16 @@
   border-color: var(--btn-primary-bg);
 }
 
-/* Product Card */
+/* Compact Product Card (Clean rectangular corners) */
 .card-product {
   background-color: var(--bg-surface);
   border: 1px solid var(--border-card);
-  border-radius: 1.5rem;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 0.625rem;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .card-product:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 12px 28px -6px rgba(0, 0, 0, 0.18);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px -4px rgba(0, 0, 0, 0.16);
   border-color: var(--btn-primary-bg);
 }
 
@@ -234,30 +237,36 @@
   color: var(--text-price-sale);
 }
 
-/* Badge System */
+/* Badge System (Clean subtle rectangular tags, NO PILLS) */
 .badge-featured {
   background-color: var(--badge-featured);
   color: #FFFFFF;
+  border-radius: 0.25rem;
 }
 .badge-deal {
   background-color: var(--badge-deal);
   color: #000000;
+  border-radius: 0.25rem;
 }
 .badge-stock {
   background-color: var(--badge-stock);
   color: #FFFFFF;
+  border-radius: 0.25rem;
 }
 .badge-b2b {
   background-color: var(--badge-b2b);
   color: #FFFFFF;
+  border-radius: 0.25rem;
 }
 .badge-clearance {
   background-color: var(--badge-clearance);
   color: #FFFFFF;
+  border-radius: 0.25rem;
 }
 .badge-new {
   background-color: var(--badge-new);
   color: var(--badge-new-text);
+  border-radius: 0.25rem;
 }
 
 /* Input Fields */
@@ -265,7 +274,7 @@
   background-color: var(--bg-surface);
   color: var(--text-primary);
   border: 1px solid var(--border-card);
-  border-radius: 1rem;
+  border-radius: 0.5rem;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 .input-theme:focus {
@@ -306,15 +315,16 @@
   color: var(--text-secondary);
 }
 
-/* Masonry Grid */
+/* Marketplace Grid (Strict 2 columns on mobile for 3 rows x 2 columns viewport fit) */
 .masonry-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 1.25rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
 }
 @media (min-width: 640px) {
   .masonry-grid {
-    grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    gap: 0.875rem;
   }
 }
 

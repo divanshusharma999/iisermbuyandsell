@@ -1,6 +1,5 @@
 import React from 'react';
-import { Clock, RefreshCw, CheckCircle, Trash2, Layers, PlusCircle, LayoutDashboard, ShoppingBag } from 'lucide-react';
-import InfoTooltip from './InfoTooltip';
+import { Clock, RefreshCw, CheckCircle, Trash2, Layers, PlusCircle, LayoutDashboard, Phone, Edit3 } from 'lucide-react';
 
 export default function SellerDashboard({
   userListings,
@@ -8,6 +7,7 @@ export default function SellerDashboard({
   onMarkAsSold,
   onDeleteListing,
   onOpenUpload,
+  onOpenEditProfile,
   currentUser
 }) {
   return (
@@ -26,23 +26,42 @@ export default function SellerDashboard({
             <div className="flex items-center gap-2 mb-1.5">
               <LayoutDashboard className="w-4 h-4 text-section-icon" />
               <span className="heading-section text-xs font-extrabold uppercase tracking-wider">
-                Seller Command Center
+                Seller Dashboard
               </span>
             </div>
             
-            {/* Section Heading: --btn-primary-bg (light) / --text-primary (dark) */}
+            {/* Section Heading */}
             <h2 className="heading-section text-2xl sm:text-3xl font-extrabold tracking-tight">
-              My Active Listings & Dashboard
+              My Active Listings
             </h2>
 
-            <p className="text-xs sm:text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>
-              Currently managing items listed under <span className="font-mono font-bold" style={{ color: 'var(--text-primary)' }}>{currentUser?.email}</span>
-            </p>
+            <div className="flex flex-wrap items-center gap-3 text-xs sm:text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>
+              <span>
+                Account: <span className="font-mono font-bold" style={{ color: 'var(--text-primary)' }}>{currentUser?.email}</span>
+              </span>
+              <span>•</span>
+              <span className="flex items-center gap-1.5">
+                <Phone className="w-3.5 h-3.5 text-section-icon" />
+                <span>WhatsApp:</span>
+                <span className="font-mono font-bold" style={{ color: 'var(--text-primary)' }}>
+                  {currentUser?.whatsapp || 'Not set'}
+                </span>
+                {onOpenEditProfile && (
+                  <button
+                    onClick={onOpenEditProfile}
+                    className="ml-1 text-[11px] font-bold underline cursor-pointer hover:opacity-80"
+                    style={{ color: 'var(--btn-primary-bg)' }}
+                  >
+                    Edit Phone
+                  </button>
+                )}
+              </span>
+            </div>
           </div>
 
           <button
             onClick={onOpenUpload}
-            className="btn-primary flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs sm:text-sm shadow-md"
+            className="btn-primary flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm shadow-md cursor-pointer"
           >
             <PlusCircle className="w-4 h-4" />
             <span>Upload New Item</span>
@@ -69,9 +88,9 @@ export default function SellerDashboard({
           >
             <Clock className="w-8 h-8" />
           </div>
-          <h3 className="heading-section text-lg font-bold">No Active Listings Found</h3>
+          <h3 className="heading-section text-lg font-bold">No Active Listings</h3>
           <p className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>
-            You haven't posted any items yet under your verified campus email. Click upload to create your first listing!
+            You haven't posted any items yet. Click upload to create your first listing!
           </p>
           <button
             onClick={onOpenUpload}
@@ -111,12 +130,12 @@ export default function SellerDashboard({
                     </span>
                     
                     {isExpiringSoon ? (
-                      <span className="badge-clearance px-2 py-0.5 text-[11px] font-bold rounded-full">
+                      <span className="badge-clearance px-2 py-0.5 text-[11px] font-bold rounded-md">
                         {diffDays === 0 ? 'Expired' : `${diffDays}d left`}
                       </span>
                     ) : (
                       <span
-                        className="px-2 py-0.5 text-[11px] font-bold rounded-full border"
+                        className="px-2 py-0.5 text-[11px] font-bold rounded-md border"
                         style={{
                           backgroundColor: 'var(--bg-body)',
                           borderColor: 'var(--border-card)',

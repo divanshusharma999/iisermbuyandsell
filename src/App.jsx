@@ -15,7 +15,6 @@ import NotFound from './components/NotFound';
 import OfflineBanner from './components/OfflineBanner';
 import { INITIAL_LISTINGS, INITIAL_BANNED_KEYWORDS, DEFAULT_ADMIN_SUPPORT_WHATSAPP } from './data/mockData';
 import { ShieldAlert, Heart } from 'lucide-react';
-import InfoTooltip from './components/InfoTooltip';
 import {
   fetchListingsFromSupabase,
   createListingInSupabase,
@@ -34,7 +33,7 @@ import {
 export default function App() {
   // ─── Dark Mode State ────────────────────────────────────────────────────────
   const [darkMode, setDarkMode] = useState(() => {
-    const saved = localStorage.getItem('kollecto_darkmode');
+    const saved = localStorage.getItem('buykksell_darkmode') || localStorage.getItem('kollecto_darkmode');
     return saved !== null ? JSON.parse(saved) : false; // Default: Light/White mode
   });
 
@@ -48,7 +47,7 @@ export default function App() {
       root.classList.remove('dark');
       root.setAttribute('data-theme', 'light');
     }
-    localStorage.setItem('kollecto_darkmode', JSON.stringify(darkMode));
+    localStorage.setItem('buykksell_darkmode', JSON.stringify(darkMode));
   }, [darkMode]);
 
   // ─── App State ──────────────────────────────────────────────────────────────
@@ -145,10 +144,13 @@ export default function App() {
   // ─── Initial Load & Sync from Supabase Backend ────────────────────────────
   useEffect(() => {
     async function loadBackendData() {
-      // 1. Fetch Listings
+      // 1. Fetch Listings & filter out expired listings
       const dbListings = await fetchListingsFromSupabase();
-      if (dbListings && dbListings.length > 0) {
-        setListings(dbListings);
+      if (dbListings) {
+        const now = new Date();
+        const activeListings = dbListings.filter(item => !item.expiresAt || new Date(item.expiresAt) > now);
+        setListings(activeListings);
+        localStorage.setItem('iiserm_listings', JSON.stringify(activeListings));
       }
 
       // 2. Fetch Banned Keywords
@@ -269,14 +271,16 @@ export default function App() {
   };
 
   const handleMarkAsSold = (id) => {
+    const targetItem = listings.find(item => item.id === id);
     setListings(listings.filter(item => item.id !== id));
-    deleteListingFromSupabase(id);
+    deleteListingFromSupabase(id, targetItem?.images);
     showToast('Item marked as sold and removed from bulletin board.');
   };
 
   const handleDeleteListing = (id) => {
+    const targetItem = listings.find(item => item.id === id);
     setListings(listings.filter(item => item.id !== id));
-    deleteListingFromSupabase(id);
+    deleteListingFromSupabase(id, targetItem?.images);
     showToast('Listing deleted.');
   };
 
@@ -290,8 +294,10 @@ export default function App() {
   };
 
   const handleForceDeleteListing = (id) => {
+    const targetItem = listings.find(item => item.id === id);
     setListings(listings.filter(item => item.id !== id));
-    deleteListingFromSupabase(id);
+    deleteListingFromSupabase(id, targetItem?.images);
+    showToast('Listing removed by moderator.', 'info');
   };
 
   const handleToggleRerouteChat = (id) => {
@@ -346,7 +352,7 @@ export default function App() {
       {/* Page Navigation Transition Loader */}
       {isNavigating && <PageTransitionLoader />}
 
-      {/* Top Navigation Bar */}
+      {/* Top Navigation Bar with Connected Search Row */}
       <Header
         currentUser={currentUser}
         onOpenUpload={handleOpenUpload}
@@ -361,6 +367,12 @@ export default function App() {
         setActiveTab={handleTabChange}
         darkMode={darkMode}
         setDarkMode={setDarkMode}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        selectedCategory={selectedCategory}
+        setSelectedCategory={setSelectedCategory}
+        sortBy={sortBy}
+        setSortBy={setSortBy}
       />
 
       {/* Account Suspended Alert Banner */}
@@ -401,7 +413,7 @@ export default function App() {
                   ? { ...item, sellerWhatsapp: profile.whatsapp, sellerName: profile.name }
                   : item
               ));
-              showToast(`Welcome to KollectoP2P, ${profile.name || profile.email}!`);
+              showToast(`Welcome to buyKꞰsell, ${profile.name || profile.email}!`);
               setShowAuthModal(false);
             }}
           />
@@ -413,22 +425,7 @@ export default function App() {
             {/* BUYER FEED VIEW */}
             {activeTab === 'feed' && (
               <>
-                <HeroSection
-                  onOpenUpload={handleOpenUpload}
-                  onExploreClearouts={() => {
-                    setSelectedCategory('All');
-                    setSearchQuery('Room Clear-out');
-                  }}
-                />
-                <FilterBar
-                  searchQuery={searchQuery}
-                  setSearchQuery={setSearchQuery}
-                  selectedCategory={selectedCategory}
-                  setSelectedCategory={setSelectedCategory}
-                  sortBy={sortBy}
-                  setSortBy={setSortBy}
-                  totalResults={filteredListings.length}
-                />
+                <HeroSection onOpenUpload={handleOpenUpload} />
                 <ProductGrid
                   listings={filteredListings}
                   onSelectProduct={handleSelectProduct}
@@ -449,6 +446,7 @@ export default function App() {
                 onMarkAsSold={handleMarkAsSold}
                 onDeleteListing={handleDeleteListing}
                 onOpenUpload={handleOpenUpload}
+                onOpenEditProfile={() => setShowAuthModal(true)}
                 currentUser={currentUser}
               />
             )}
@@ -508,14 +506,23 @@ export default function App() {
           <div className="flex flex-col md:flex-row items-center justify-between gap-4 pb-6 border-b border-white/10">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-xl overflow-hidden border border-white/20 shadow-sm shrink-0">
-                <img src="/logo.jpg" alt="KollectoP2P" className="w-full h-full object-cover" />
+                <img src="/logo.jpg" alt="buyKꞰsell" className="w-full h-full object-cover" />
               </div>
               <div>
-                <span className="font-extrabold text-base tracking-tight" style={{ color: 'var(--text-on-dark)' }}>
-                  Kollecto<span style={{ color: 'var(--text-accent-hero)' }}>P2P</span>
+                <span
+                  className="font-extrabold text-base tracking-tight inline-flex items-center"
+                  style={{ color: 'var(--text-on-dark)' }}
+                  aria-label="buyKꞰsell"
+                >
+                  <span>buy</span>
+                  <span className="inline-flex tracking-[-0.14em] mx-[0.5px] font-black" style={{ color: 'var(--text-accent-hero)' }}>
+                    <span>K</span>
+                    <span className="inline-block transform -scale-x-100">K</span>
+                  </span>
+                  <span>sell</span>
                 </span>
                 <p className="text-xs text-white/70">
-                  IISER Mohali Campus-Exclusive Peer-to-Peer Marketplace
+                  IISER Mohali Campus Marketplace
                 </p>
               </div>
             </div>
@@ -561,7 +568,7 @@ export default function App() {
               <span>© 2026 IISER Mohali Campus Marketplace</span>
               <span className="text-white/30">•</span>
               <span
-                className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold border border-white/20"
+                className="px-2.5 py-0.5 rounded-md text-[10px] font-mono font-bold border border-white/20"
                 style={{ backgroundColor: 'rgba(0, 0, 0, 0.3)', color: 'var(--text-accent-hero)' }}
               >
                 @iisermohali.ac.in verified

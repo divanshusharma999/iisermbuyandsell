@@ -124,3 +124,39 @@ DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+
+-- ====================================================================
+-- 7. AUTOMATED EXPIRED LISTINGS CLEANUP (Run in Supabase SQL Editor)
+-- ====================================================================
+
+-- Function to permanently delete all expired listings (older than 21 days)
+CREATE OR REPLACE FUNCTION public.delete_expired_listings()
+RETURNS INTEGER AS $$
+DECLARE
+  deleted_count INTEGER;
+BEGIN
+  DELETE FROM public.listings
+  WHERE expires_at < NOW();
+
+  GET DIAGNOSTICS deleted_count = ROW_COUNT;
+  RETURN deleted_count;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Grant execution permission so the app or scheduled jobs can invoke it
+GRANT EXECUTE ON FUNCTION public.delete_expired_listings() TO anon, authenticated, service_role;
+
+-- To enable automated daily cleanup directly inside Supabase Database:
+-- 1. In Supabase Dashboard -> Database -> Extensions -> Enable "pg_cron"
+-- 2. Run the following snippet in SQL Editor to run cleanup every night at midnight:
+/*
+CREATE EXTENSION IF NOT EXISTS pg_cron;
+
+SELECT cron.schedule(
+  'auto-delete-expired-listings',
+  '0 0 * * *',
+  $$DELETE FROM public.listings WHERE expires_at < NOW();$$
+);
+*/
+

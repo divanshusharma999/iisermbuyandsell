@@ -161,66 +161,7 @@ export async function updateUserProfile(email, name, whatsapp, userId = null) {
     }
   }
 
-  let dbSuccess = false;
-
-  // 1. Try updating by user id first if present
-  if (targetId) {
-    const { data, error } = await supabase
-      .from('profiles')
-      .update({
-        name: cleanName,
-        whatsapp: cleanPhone
-      })
-      .eq('id', targetId)
-      .select();
-
-    if (!error && data && data.length > 0) {
-      dbSuccess = true;
-    } else if (error) {
-      console.warn("Direct update by id failed:", error.message);
-    }
-  }
-
-  // 2. Try updating by email if not updated yet
-  if (!dbSuccess && cleanEmail) {
-    const { data, error } = await supabase
-      .from('profiles')
-      .update({
-        name: cleanName,
-        whatsapp: cleanPhone
-      })
-      .eq('email', cleanEmail)
-      .select();
-
-    if (!error && data && data.length > 0) {
-      dbSuccess = true;
-    } else if (error) {
-      console.warn("Direct update by email failed:", error.message);
-    }
-  }
-
-  // 3. Fallback: Upsert into public.profiles with exact table schema columns
-  if (!dbSuccess) {
-    const payload = {
-      email: cleanEmail,
-      name: cleanName,
-      whatsapp: cleanPhone,
-      is_admin: adminFlag,
-      is_suspended: false
-    };
-    if (targetId) payload.id = targetId;
-
-    const { error: upsertErr } = await supabase
-      .from('profiles')
-      .upsert(payload, { onConflict: targetId ? 'id' : 'email' });
-
-    if (upsertErr) {
-      console.error("Critical: Could not save profile in Supabase profiles table:", upsertErr);
-      throw new Error(upsertErr.message || "Failed to persist profile updates to database.");
-    }
-  }
-
-  // 4. Keep Supabase Auth user_metadata in sync
+  // 1. Immediately update Supabase Auth user_metadata (this reliably persists on the Supabase user)
   try {
     await supabase.auth.updateUser({
       data: {
@@ -231,6 +172,82 @@ export async function updateUserProfile(email, name, whatsapp, userId = null) {
     });
   } catch (authErr) {
     console.warn("Could not update auth user metadata:", authErr.message);
+  }
+
+  // 2. Try updating public.profiles table by id
+  let dbUpdated = false;
+  if (targetId) {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .update({
+          name: cleanName,
+          whatsapp: cleanPhone,
+          email: cleanEmail
+        })
+        .eq('id', targetId)
+        .select();
+
+      if (!error && data && data.length > 0) {
+        dbUpdated = true;
+      }
+    } catch (e) {
+      console.warn("Profile update by id notice:", e.message);
+    }
+  }
+
+  // 3. If not updated by id, try updating by email
+  if (!dbUpdated && cleanEmail) {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .update({
+          name: cleanName,
+          whatsapp: cleanPhone,
+          id: targetId || undefined
+        })
+        .eq('email', cleanEmail)
+        .select();
+
+      if (!error && data && data.length > 0) {
+        dbUpdated = true;
+      }
+    } catch (e) {
+      console.warn("Profile update by email notice:", e.message);
+    }
+  }
+
+  // 4. Fallback: Upsert into public.profiles
+  if (!dbUpdated) {
+    try {
+      const payload = {
+        email: cleanEmail,
+        name: cleanName,
+        whatsapp: cleanPhone,
+        is_admin: adminFlag,
+        is_suspended: false
+      };
+      if (targetId) payload.id = targetId;
+
+      await supabase.from('profiles').upsert(payload, { onConflict: targetId ? 'id' : 'email' });
+    } catch (upsertErr) {
+      console.warn("Profile upsert notice:", upsertErr.message);
+    }
+  }
+
+  // 5. Keep all active listings of this seller in sync with new WhatsApp contact
+  if (cleanEmail && cleanPhone) {
+    try {
+      await supabase
+        .from('listings')
+        .update({
+          seller_whatsapp: cleanPhone,
+          seller_name: cleanName
+        })
+        .eq('seller_email', cleanEmail);
+    } catch (listErr) {
+      console.warn("Could not sync listings seller contact:", listErr.message);
+    }
   }
 
   return {
@@ -395,53 +412,74 @@ export async function getCurrentUserProfile() {
   }
 
   const googleName = session.user.user_metadata?.full_name || session.user.user_metadata?.name || '';
+  const metadataPhone = session.user.user_metadata?.whatsapp || '';
 
+  let dbProfile = null;
   try {
-    const { data: profile } = await supabase
+    // 1. Check profiles by session user id
+    const { data: byId } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', session.user.id)
       .maybeSingle();
 
-    if (profile && profile.whatsapp && profile.whatsapp.trim()) {
-      return {
-        id: profile.id,
-        email: profile.email || userEmail,
-        name: profile.name || googleName || userEmail.split('@')[0],
-        whatsapp: profile.whatsapp,
-        isAdmin: profile.is_admin || adminFlag,
-        isSuspended: profile.is_suspended || false,
-        needsOnboarding: false,
-        provider: session.user.app_metadata?.provider || 'google'
-      };
-    }
-
-    // If profile exists but lacks whatsapp number
-    if (profile) {
-      return {
-        id: profile.id,
-        email: profile.email || userEmail,
-        name: profile.name || googleName || userEmail.split('@')[0],
-        whatsapp: profile.whatsapp || '',
-        isAdmin: profile.is_admin || adminFlag,
-        isSuspended: profile.is_suspended || false,
-        needsOnboarding: true,
-        provider: session.user.app_metadata?.provider || 'google'
-      };
+    if (byId) {
+      dbProfile = byId;
+    } else if (userEmail) {
+      // 2. Fallback: check profiles by email
+      const { data: byEmail } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('email', userEmail.toLowerCase())
+        .maybeSingle();
+      if (byEmail) {
+        dbProfile = byEmail;
+      }
     }
   } catch (err) {
     console.warn("Could not query profile table:", err.message);
   }
 
-  // First time sign-in: Brand new Google user without a profile in Supabase
+  // Resolve best known phone number: database -> user_metadata -> localStorage
+  let savedLocalUser = null;
+  try {
+    const raw = localStorage.getItem('iiserm_current_user');
+    if (raw) savedLocalUser = JSON.parse(raw);
+  } catch (e) {}
+
+  const resolvedPhone = (dbProfile?.whatsapp?.trim()) ||
+    (metadataPhone?.trim()) ||
+    (savedLocalUser?.email?.toLowerCase() === userEmail.toLowerCase() ? savedLocalUser?.whatsapp?.trim() : '') ||
+    '';
+
+  const resolvedName = (dbProfile?.name?.trim()) ||
+    googleName ||
+    (savedLocalUser?.name?.trim()) ||
+    userEmail.split('@')[0];
+
+  const resolvedAdmin = Boolean(dbProfile?.is_admin || adminFlag);
+  const resolvedSuspended = Boolean(dbProfile?.is_suspended || false);
+
+  // If user has a resolved phone number from metadata/localStorage but missing in DB, sync it in the background
+  if (resolvedPhone && (!dbProfile || !dbProfile.whatsapp)) {
+    supabase.from('profiles').upsert({
+      id: session.user.id,
+      email: userEmail.toLowerCase(),
+      name: resolvedName,
+      whatsapp: resolvedPhone,
+      is_admin: resolvedAdmin,
+      is_suspended: resolvedSuspended
+    }).catch(e => console.warn("Background profile sync:", e.message));
+  }
+
   return {
     id: session.user.id,
-    email: userEmail,
-    name: googleName || userEmail.split('@')[0],
-    whatsapp: '',
-    isAdmin: adminFlag,
-    isSuspended: false,
-    needsOnboarding: true,
+    email: dbProfile?.email || userEmail,
+    name: resolvedName,
+    whatsapp: resolvedPhone,
+    isAdmin: resolvedAdmin,
+    isSuspended: resolvedSuspended,
+    needsOnboarding: !resolvedPhone,
     provider: session.user.app_metadata?.provider || 'google'
   };
 }
@@ -529,13 +567,113 @@ export async function uploadProductImage(file) {
 }
 
 // ====================================================================
+// ====================================================================
+// STORAGE IMAGE CLEANUP HELPERS
+// ====================================================================
+
+/**
+ * Extract storage object path from full Supabase Storage public URL
+ */
+export function getStoragePathFromUrl(url) {
+  if (!url || typeof url !== 'string') return null;
+  // If URL contains '/product-images/', extract the relative file path inside the bucket
+  const marker = 'product-images/';
+  const idx = url.indexOf(marker);
+  if (idx !== -1) {
+    return url.substring(idx + marker.length);
+  }
+  if (url.startsWith('listings/')) {
+    return url;
+  }
+  return null;
+}
+
+/**
+ * Remove uploaded images from Supabase Storage 'product-images' bucket
+ */
+export async function deleteListingImagesFromStorage(imageUrls) {
+  if (!Array.isArray(imageUrls) || imageUrls.length === 0) return;
+  try {
+    const filePaths = imageUrls
+      .map(getStoragePathFromUrl)
+      .filter(Boolean);
+
+    if (filePaths.length > 0) {
+      const { error } = await supabase.storage
+        .from('product-images')
+        .remove(filePaths);
+
+      if (error) {
+        console.warn("Notice deleting listing images from storage:", error.message);
+      }
+    }
+  } catch (err) {
+    console.warn("Storage cleanup exception:", err.message);
+  }
+}
+
+// ====================================================================
 // LISTINGS DATABASE SERVICES
 // ====================================================================
+
+/**
+ * Automatically delete all expired listings (expires_at < NOW) and their storage images
+ */
+export async function deleteExpiredListingsFromSupabase() {
+  try {
+    const nowIso = new Date().toISOString();
+
+    // 1. Fetch expired items to retrieve their image paths before table deletion
+    const { data: expiredRows, error: fetchErr } = await supabase
+      .from('listings')
+      .select('id, images')
+      .lt('expires_at', nowIso);
+
+    if (fetchErr) {
+      console.warn("Could not query expired listings for cleanup:", fetchErr.message);
+      return 0;
+    }
+
+    if (expiredRows && expiredRows.length > 0) {
+      // Clean up storage images for all expired items
+      const allImages = expiredRows.flatMap(row => Array.isArray(row.images) ? row.images : []);
+      if (allImages.length > 0) {
+        await deleteListingImagesFromStorage(allImages);
+      }
+
+      // 2. Permanently delete all expired listings from Supabase table
+      const { error: deleteErr } = await supabase
+        .from('listings')
+        .delete()
+        .lt('expires_at', nowIso);
+
+      if (deleteErr) {
+        console.warn("Could not delete expired listings from Supabase table:", deleteErr.message);
+      }
+
+      return expiredRows.length;
+    }
+    return 0;
+  } catch (err) {
+    console.warn("Exception in deleteExpiredListingsFromSupabase:", err);
+    return 0;
+  }
+}
+
 export async function fetchListingsFromSupabase() {
   try {
+    const nowIso = new Date().toISOString();
+
+    // Run background cleanup of expired listings
+    deleteExpiredListingsFromSupabase().catch(e => {
+      console.warn("Background expired cleanup notice:", e.message);
+    });
+
+    // Fetch active non-expired listings
     const { data, error } = await supabase
       .from('listings')
       .select('*')
+      .or(`expires_at.is.null,expires_at.gt.${nowIso}`)
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -595,8 +733,34 @@ export async function updateListingInSupabase(id, updates) {
   }
 }
 
-export async function deleteListingFromSupabase(id) {
+/**
+ * Permanently delete listing row from Supabase and delete its images from Storage
+ */
+export async function deleteListingFromSupabase(id, images = []) {
   try {
+    // 1. Gather image URLs to clean up from Supabase Storage
+    let imagesToDelete = Array.isArray(images) && images.length > 0 ? images : [];
+    if (imagesToDelete.length === 0) {
+      try {
+        const { data: item } = await supabase
+          .from('listings')
+          .select('images')
+          .eq('id', id)
+          .maybeSingle();
+        if (item?.images && Array.isArray(item.images)) {
+          imagesToDelete = item.images;
+        }
+      } catch (e) {
+        console.warn("Could not fetch listing images before deletion:", e.message);
+      }
+    }
+
+    // 2. Remove files from Supabase Storage
+    if (imagesToDelete.length > 0) {
+      await deleteListingImagesFromStorage(imagesToDelete);
+    }
+
+    // 3. Delete row from Supabase listings table
     const { error } = await supabase
       .from('listings')
       .delete()

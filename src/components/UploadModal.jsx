@@ -1,17 +1,7 @@
 import React, { useState } from 'react';
 import { X, Plus, Trash2, Image as ImageIcon, Link as LinkIcon, AlertTriangle, Layers, Tag, DollarSign, Sparkles, Upload, Loader2 } from 'lucide-react';
 import { CATEGORIES, CONDITIONS } from '../data/mockData';
-import InfoTooltip from './InfoTooltip';
 import { uploadProductImage } from '../supabase';
-
-const SAMPLE_STOCK_IMAGES = [
-  'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=600&q=80',
-  'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=600&q=80',
-  'https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?auto=format&fit=crop&w=600&q=80',
-  'https://images.unsplash.com/photo-1585238342024-78d387f4a707?auto=format&fit=crop&w=600&q=80',
-  'https://images.unsplash.com/photo-1594212699903-ec8a3eca50f6?auto=format&fit=crop&w=600&q=80',
-  'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&w=600&q=80'
-];
 
 export default function UploadModal({ onClose, onSubmit, currentUser, bannedKeywords = [] }) {
   const [title, setTitle] = useState('');
@@ -22,21 +12,18 @@ export default function UploadModal({ onClose, onSubmit, currentUser, bannedKeyw
   const [isNegotiable, setIsNegotiable] = useState(true);
   const [isCartSell, setIsCartSell] = useState(false);
 
-  const [images, setImages] = useState([
-    'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=600&q=80'
-  ]);
+  const [images, setImages] = useState([]);
   const [thumbnailIndex, setThumbnailIndex] = useState(0);
   const [imageUrlInput, setImageUrlInput] = useState('');
   const [isUploading, setIsUploading] = useState(false);
   const [uploadStatusMsg, setUploadStatusMsg] = useState(null);
 
   const [referenceLinks, setReferenceLinks] = useState([
-    { label: 'Amazon Retail Link', url: '' }
+    { label: 'Retail Reference Link', url: '' }
   ]);
 
   const [subItems, setSubItems] = useState([
-    { id: 'sub-1', title: 'Single Mattress', price: 1200, selected: true },
-    { id: 'sub-2', title: 'Study Lamp', price: 350, selected: true }
+    { id: 'sub-1', title: 'Bundle Item 1', price: 500, selected: true }
   ]);
 
   const [bannedKeywordError, setBannedKeywordError] = useState(null);
@@ -52,7 +39,7 @@ export default function UploadModal({ onClose, onSubmit, currentUser, bannedKeyw
     }
 
     setIsUploading(true);
-    setUploadStatusMsg('Uploading image to Supabase Storage...');
+    setUploadStatusMsg('Uploading image...');
 
     try {
       const uploadedUrls = [];
@@ -61,14 +48,14 @@ export default function UploadModal({ onClose, onSubmit, currentUser, bannedKeyw
         if (url) uploadedUrls.push(url);
       }
       setImages([...images, ...uploadedUrls]);
-      setUploadStatusMsg('Uploaded to Supabase successfully!');
-      setTimeout(() => setUploadStatusMsg(null), 3000);
+      setUploadStatusMsg('Uploaded successfully!');
+      setTimeout(() => setUploadStatusMsg(null), 2500);
     } catch (err) {
       console.warn("Upload error:", err);
       const localUrls = files.map(file => URL.createObjectURL(file));
       setImages([...images, ...localUrls]);
-      setUploadStatusMsg('Previewing local image.');
-      setTimeout(() => setUploadStatusMsg(null), 4000);
+      setUploadStatusMsg('Previewing image.');
+      setTimeout(() => setUploadStatusMsg(null), 3000);
     } finally {
       setIsUploading(false);
     }
@@ -191,11 +178,9 @@ export default function UploadModal({ onClose, onSubmit, currentUser, bannedKeyw
           }}
         >
           <div>
-            <h3 className="font-extrabold text-lg flex items-center gap-1.5" style={{ color: 'var(--text-on-dark)' }}>
-              <span>Post KollectoP2P Listing</span>
-              <InfoTooltip text="Single-page upload flow with image hosting." position="bottom" />
+            <h3 className="font-extrabold text-lg" style={{ color: 'var(--text-on-dark)' }}>
+              Post Listing
             </h3>
-            <p className="text-xs text-white/70">Locked to @iisermohali.ac.in verified student network</p>
           </div>
           <button
             onClick={onClose}
@@ -221,8 +206,7 @@ export default function UploadModal({ onClose, onSubmit, currentUser, bannedKeyw
             <div className="flex items-center justify-between">
               <label className="font-extrabold text-slate-800 dark:text-slate-200 uppercase tracking-wider text-xs flex items-center gap-1">
                 <ImageIcon className="w-4 h-4 text-emerald-500" />
-                <span>Upload Media</span>
-                <InfoTooltip text="Upload product photos from your device. Radio button overlay sets the cover thumbnail." position="right" />
+                <span>Media</span>
               </label>
               <span className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold">{images.length}/5 uploaded</span>
             </div>
@@ -233,7 +217,7 @@ export default function UploadModal({ onClose, onSubmit, currentUser, bannedKeyw
                 <div key={idx} className="relative group h-24 rounded-xl overflow-hidden border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-900">
                   <img src={img} alt={`Upload ${idx}`} className="w-full h-full object-cover" />
                   
-                  <label className="absolute top-1 left-1 bg-slate-950/90 rounded-full p-1 border border-slate-700 cursor-pointer flex items-center gap-1 text-[10px] text-white px-1.5 shadow">
+                  <label className="absolute top-1 left-1 bg-slate-950/90 rounded-md p-1 border border-slate-700 cursor-pointer flex items-center gap-1 text-[10px] text-white px-1.5 shadow">
                     <input
                       type="radio"
                       name="thumbnail"
@@ -247,7 +231,7 @@ export default function UploadModal({ onClose, onSubmit, currentUser, bannedKeyw
                   <button
                     type="button"
                     onClick={() => handleRemoveImage(idx)}
-                    className="absolute top-1 right-1 p-1 bg-rose-600/90 text-white rounded-full opacity-80 hover:opacity-100"
+                    className="absolute top-1 right-1 p-1 bg-rose-600/90 text-white rounded-md opacity-80 hover:opacity-100"
                   >
                     <X className="w-3 h-3" />
                   </button>
@@ -290,30 +274,16 @@ export default function UploadModal({ onClose, onSubmit, currentUser, bannedKeyw
                     type="url"
                     value={imageUrlInput}
                     onChange={(e) => setImageUrlInput(e.target.value)}
-                    placeholder="Or paste external image URL (e.g. https://...)"
+                    placeholder="Or paste image URL (e.g. https://...)"
                     className="flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:border-emerald-500 focus:outline-none"
                   />
                   <button
                     type="button"
                     onClick={() => handleAddImage()}
-                    className="px-3 py-2 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 font-bold rounded-xl text-xs"
+                    className="px-3 py-2 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 font-bold rounded-xl text-xs cursor-pointer"
                   >
                     Add URL
                   </button>
-                </div>
-
-                <div className="text-[11px] text-slate-500 dark:text-slate-400">Or pick from sample campus photos:</div>
-                <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
-                  {SAMPLE_STOCK_IMAGES.map((sampleUrl, i) => (
-                    <button
-                      key={i}
-                      type="button"
-                      onClick={() => handleAddImage(sampleUrl)}
-                      className="w-12 h-12 rounded-lg overflow-hidden border border-slate-300 dark:border-slate-700 opacity-70 hover:opacity-100 shrink-0"
-                    >
-                      <img src={sampleUrl} alt="Stock option" className="w-full h-full object-cover" />
-                    </button>
-                  ))}
                 </div>
               </div>
             )}
@@ -324,7 +294,6 @@ export default function UploadModal({ onClose, onSubmit, currentUser, bannedKeyw
             <div className="sm:col-span-2">
               <label className="block font-bold text-slate-700 dark:text-slate-300 text-xs mb-1">
                 Item Title *
-                <InfoTooltip text="Descriptive title." position="right" />
               </label>
               <input
                 type="text"
@@ -340,7 +309,6 @@ export default function UploadModal({ onClose, onSubmit, currentUser, bannedKeyw
               <div>
                 <label className="block font-bold text-slate-700 dark:text-slate-300 text-xs mb-1">
                   Asking Price (₹) *
-                  <InfoTooltip text="Set your initial asking price in INR." position="right" />
                 </label>
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold">₹</span>
@@ -360,7 +328,6 @@ export default function UploadModal({ onClose, onSubmit, currentUser, bannedKeyw
             <div>
               <label className="block font-bold text-slate-700 dark:text-slate-300 text-xs mb-1">
                 Category *
-                <InfoTooltip text="Pick the primary tag for buyer filtering." position="right" />
               </label>
               <select
                 value={category}
@@ -376,7 +343,6 @@ export default function UploadModal({ onClose, onSubmit, currentUser, bannedKeyw
             <div>
               <label className="block font-bold text-slate-700 dark:text-slate-300 text-xs mb-1">
                 Condition *
-                <InfoTooltip text="Specify the item's physical condition state." position="right" />
               </label>
               <select
                 value={condition}
@@ -391,13 +357,12 @@ export default function UploadModal({ onClose, onSubmit, currentUser, bannedKeyw
 
             <div className="sm:col-span-2">
               <label className="block font-bold text-slate-700 dark:text-slate-300 text-xs mb-1">
-                Description & Hostel Details *
-                <InfoTooltip text="Include usage history, hostel block, and pickup details." position="right" />
+                Description *
               </label>
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="Mention how long you've used the item, hostel number, and availability..."
+                placeholder="Mention condition, usage history, and hostel location..."
                 rows={3}
                 className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:border-emerald-500 focus:outline-none"
                 required
@@ -411,10 +376,8 @@ export default function UploadModal({ onClose, onSubmit, currentUser, bannedKeyw
               <div>
                 <span className="font-extrabold text-slate-800 dark:text-slate-200 text-xs flex items-center gap-1">
                   <Layers className="w-4 h-4 text-teal-600 dark:text-teal-400" />
-                  <span>Single Item vs Cart Sell (Room Clear-out)</span>
-                  <InfoTooltip text="Enable 'Cart Sell' if you are selling multiple sub-items under one listing." position="right" />
+                  <span>Room Clear-Out Bundle</span>
                 </span>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400">Allows buyers to select individual sub-items with checkboxes!</p>
               </div>
 
               <button
@@ -483,8 +446,7 @@ export default function UploadModal({ onClose, onSubmit, currentUser, bannedKeyw
             <div className="flex items-center justify-between pt-2 border-t border-slate-200 dark:border-slate-800/80">
               <div>
                 <span className="font-bold text-slate-800 dark:text-slate-200 text-xs flex items-center gap-1">
-                  <span>Price Flexibility (Negotiable)</span>
-                  <InfoTooltip text="Indicate whether asking price is negotiable or firm non-negotiable." position="right" />
+                  <span>Price Negotiable</span>
                 </span>
               </div>
 
@@ -509,8 +471,7 @@ export default function UploadModal({ onClose, onSubmit, currentUser, bannedKeyw
             <div className="flex items-center justify-between">
               <label className="font-extrabold text-slate-800 dark:text-slate-200 text-xs uppercase tracking-wider flex items-center gap-1">
                 <LinkIcon className="w-4 h-4 text-emerald-500" />
-                <span>Retail Comparison Links</span>
-                <InfoTooltip text="Paste Amazon or Flipkart product URLs so buyers can compare retail price against your used price." position="right" />
+                <span>Reference Links</span>
               </label>
 
               <button
@@ -528,14 +489,14 @@ export default function UploadModal({ onClose, onSubmit, currentUser, bannedKeyw
                   type="text"
                   value={ref.label}
                   onChange={(e) => handleRefLinkChange(idx, 'label', e.target.value)}
-                  placeholder="Label (e.g. Amazon Retail Price)"
+                  placeholder="Label (e.g. Retail Price)"
                   className="w-1/3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-2.5 py-2 text-xs text-slate-900 dark:text-white"
                 />
                 <input
                   type="url"
                   value={ref.url}
                   onChange={(e) => handleRefLinkChange(idx, 'url', e.target.value)}
-                  placeholder="URL (https://amazon.in/dp/...)"
+                  placeholder="URL (https://...)"
                   className="flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-2.5 py-2 text-xs text-slate-900 dark:text-white"
                 />
                 {referenceLinks.length > 1 && (
@@ -558,7 +519,7 @@ export default function UploadModal({ onClose, onSubmit, currentUser, bannedKeyw
               className="btn-primary w-full py-3.5 px-6 rounded-2xl text-sm sm:text-base shadow-xl flex items-center justify-center gap-2"
             >
               <Sparkles className="w-5 h-5 text-current" />
-              <span>Publish Listing (21-Day Active Board)</span>
+              <span>Publish Listing</span>
             </button>
           </div>
 

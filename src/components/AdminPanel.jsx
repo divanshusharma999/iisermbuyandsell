@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { ShieldCheck, UserX, UserCheck, Trash2, PhoneCall, Plus, X, Layers, Users, ShieldAlert, Sparkles } from 'lucide-react';
-import InfoTooltip from './InfoTooltip';
+import { ShieldCheck, UserX, UserCheck, Trash2, PhoneCall, Plus, X, Layers, Users, ShieldAlert, Sparkles, Package } from 'lucide-react';
 
 export default function AdminPanel({
   listings,
@@ -147,11 +146,17 @@ export default function AdminPanel({
                       borderColor: 'var(--border-card)'
                     }}
                   >
-                    <img
-                      src={item.images?.[0] || 'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?auto=format&fit=crop&w=200&q=80'}
-                      alt=""
-                      className="w-full h-full object-cover"
-                    />
+                    {item.images?.[0] ? (
+                      <img
+                        src={item.images[0]}
+                        alt=""
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-slate-400">
+                        <Package className="w-5 h-5" />
+                      </div>
+                    )}
                   </div>
 
                   <div className="min-w-0">

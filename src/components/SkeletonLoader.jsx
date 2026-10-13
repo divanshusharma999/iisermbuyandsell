@@ -35,7 +35,7 @@ export function PageTransitionLoader() {
     <div className="fixed inset-0 z-50 bg-slate-900/10 dark:bg-slate-950/20 backdrop-blur-sm flex items-center justify-center pointer-events-none">
       <div className="glass-modal p-5 rounded-3xl flex items-center gap-3 shadow-2xl animate-in zoom-in-95">
         <div className="w-6 h-6 border-2 border-[var(--apple-blue)] border-t-transparent rounded-full animate-spin" />
-        <span className="text-xs font-bold text-slate-800 dark:text-slate-200">Loading KollectoP2P...</span>
+        <span className="text-xs font-bold text-slate-800 dark:text-slate-200">Loading buyKꞰsell...</span>
       </div>
     </div>
   );
